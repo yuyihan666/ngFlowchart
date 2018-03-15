@@ -1,7 +1,7 @@
 {
   "name": "ngFlowchart",
-  "version": "0.5.1",
-  "homepage": "https://github.com/ONE-LOGIC/ngFlowchart",
+  "version": "0.5.1TB",
+  "homepage": "https://github.com/ikulikov/ngFlowchart",
   "authors": [
     "per.fuchs@onelogic.de"
   ],
@@ -31,8 +31,5 @@
   },
   "devDependencies": {
     "angular-mocks": "1.4.7"
-  },
-  "resolutions": {
-    "angular": "1.4.7"
   }
 }
