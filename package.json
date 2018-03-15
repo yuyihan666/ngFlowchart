@@ -5,7 +5,7 @@
   "repository": "https://github.com/ikulikov/ngFlowchart",
   "license": "MIT",
   "scripts": {
-    "install": "./node_modules/.bin/gulp build"
+    "install": "./node_modules/.bin/bower install && ./node_modules/.bin/gulp build"
   },
   "devDependencies": {
     "bower": "^1.3.1",
