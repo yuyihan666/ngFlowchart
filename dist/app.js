@@ -6,7 +6,7 @@ angular.module('app', ['flowchart'])
     NodeTemplatePathProvider.setTemplatePath("flowchart/node.html");
   })
 
-  .controller('AppCtrl', function AppCtrl($scope, prompt, Modelfactory, flowchartConstants) {
+  .controller('AppCtrl', function AppCtrl($scope, $q, prompt, Modelfactory, flowchartConstants) {
 
     var deleteKeyCode = 46;
     var ctrlKeyCode = 17;
@@ -27,105 +27,84 @@ angular.module('app', ['flowchart'])
           borderColor: '#000',
           connectors: [
             {
-              type: flowchartConstants.bottomConnectorType,
-              id: 9
+              type: flowchartConstants.leftConnectorType,
+              id: 1
             },
             {
-              type: flowchartConstants.bottomConnectorType,
-              id: 10
+              type: flowchartConstants.rightConnectorType,
+              id: 2
             }
           ]
         },
         {
           name: "Implemented with AngularJS",
           id: 3,
-          x: 400,
-          y: 300,
+          x: 700,
+          y: 100,
           color: '#F15B26',
           connectors: [
             {
-              type: flowchartConstants.topConnectorType,
-              id: 1
-            },
-            {
-              type: flowchartConstants.topConnectorType,
-              id: 2
-            },
-            {
-              type: flowchartConstants.topConnectorType,
+              type: flowchartConstants.leftConnectorType,
               id: 3
             },
             {
-              type: flowchartConstants.bottomConnectorType,
+              type: flowchartConstants.rightConnectorType,
               id: 4
-            },
-            {
-              type: flowchartConstants.bottomConnectorType,
-              id: 5
-            },
-            {
-              type: flowchartConstants.bottomConnectorType,
-              id: 12
             }
           ]
         },
         {
           name: "Easy Integration",
           id: 4,
-          x: 200,
-          y: 600,
+          x: 1100,
+          y: 100,
           color: '#000',
           borderColor: '#000',
           connectors: [
             {
-              type: flowchartConstants.topConnectorType,
-              id: 13
+              type: flowchartConstants.leftConnectorType,
+              id: 5
             },
             {
-              type: flowchartConstants.topConnectorType,
-              id: 14
-            },
-            {
-              type: flowchartConstants.topConnectorType,
-              id: 15
+              type: flowchartConstants.rightConnectorType,
+              id: 6
             }
           ]
         },
         {
           name: "Customizable templates",
           id: 5,
-          x: 600,
-          y: 600,
+          x: 1400,
+          y: 100,
           color: '#000',
           borderColor: '#000',
           connectors: [
             {
-              type: flowchartConstants.topConnectorType,
-              id: 16
+              type: flowchartConstants.leftConnectorType,
+              id: 7
             },
             {
-              type: flowchartConstants.topConnectorType,
-              id: 17
-            },
-            {
-              type: flowchartConstants.topConnectorType,
-              id: 18
+              type: flowchartConstants.rightConnectorType,
+              id: 8
             }
           ]
         }
       ],
     edges: [
       {
-        source: 10,
-        destination: 1
+        source: 2,
+        destination: 3,
+        label: 'label1'
       },
       {
-        source: 5,
-        destination: 14
+        source: 4,
+        destination: 5,
+        label: 'label2'
       },
       {
-        source: 5,
-        destination: 17
+        source: 6,
+        destination: 7,
+        label: 'label3'
       }
     ]
   };
@@ -180,19 +159,11 @@ $scope.addNewNode = function () {
     connectors: [
       {
         id: nextConnectorID++,
-        type: flowchartConstants.topConnectorType
+        type: flowchartConstants.leftConnectorType
       },
       {
         id: nextConnectorID++,
-        type: flowchartConstants.topConnectorType
-      },
-      {
-        id: nextConnectorID++,
-        type: flowchartConstants.bottomConnectorType
-      },
-      {
-        id: nextConnectorID++,
-        type: flowchartConstants.bottomConnectorType
+        type: flowchartConstants.rightConnectorType
       }
     ]
   };
@@ -215,7 +186,7 @@ $scope.addNewInputConnector = function () {
   var selectedNodes = modelservice.nodes.getSelectedNodes($scope.model);
   for (var i = 0; i < selectedNodes.length; ++i) {
     var node = selectedNodes[i];
-    node.connectors.push({id: nextConnectorID++, type: flowchartConstants.topConnectorType});
+    node.connectors.push({id: nextConnectorID++, type: flowchartConstants.leftConnectorType});
   }
 };
 
@@ -228,7 +199,7 @@ $scope.addNewOutputConnector = function () {
   var selectedNodes = modelservice.nodes.getSelectedNodes($scope.model);
   for (var i = 0; i < selectedNodes.length; ++i) {
     var node = selectedNodes[i];
-    node.connectors.push({id: nextConnectorID++, type: flowchartConstants.bottomConnectorType});
+    node.connectors.push({id: nextConnectorID++, type: flowchartConstants.rightConnectorType});
   }
 };
 
@@ -244,7 +215,17 @@ $scope.callbacks = {
     console.log('mouserover')
   },
   isValidEdge: function (source, destination) {
-    return source.type === flowchartConstants.bottomConnectorType && destination.type === flowchartConstants.topConnectorType;
+    return source.type === flowchartConstants.rightConnectorType && destination.type === flowchartConstants.leftConnectorType;
+  },
+  createEdge: function (sourceNode, destNode) {
+    var deferred = $q.defer();
+    var label = prompt("Enter a link label:", "New label");
+    if (!label) {
+      deferred.reject();
+    } else {
+      deferred.resolve({label: label});
+    }
+    return deferred.promise;
   },
   edgeAdded: function (edge) {
     console.log("edge added");
@@ -261,6 +242,9 @@ $scope.callbacks = {
   nodeCallbacks: {
     'doubleClick': function (event) {
       console.log('Node was doubleclicked.')
+    },
+    'click': function (event) {
+      console.log('Node was clicked.')
     }
   }
 };

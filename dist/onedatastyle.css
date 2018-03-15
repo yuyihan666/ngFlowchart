@@ -47,7 +47,7 @@ body {
 
   background-color: #F15B26;
   color: #fff;
-  font-size: 20px;
+  font-size: 16px;
 }
 
 .fc-node.fc-hover {
@@ -69,23 +69,23 @@ body {
   text-align: center;
 }
 
-.fc-topConnectors, .fc-bottomConnectors {
+.fc-leftConnectors, .fc-rightConnectors {
   position: absolute;
-  left: 0;
-  width: 100%;
+  top: 0;
+  height: 100%;
 
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
 
   z-index: -10;
 }
 
-.fc-topConnectors {
-  top: -40px;
+.fc-leftConnectors {
+  left: -20px;
 }
 
-.fc-bottomConnectors {
-  bottom: -40px;
+.fc-rightConnectors {
+  right: -20px;
 }
 
 .fc-magnet {
@@ -96,12 +96,12 @@ body {
   justify-content: center;
 }
 
-.fc-topConnectors .fc-magnet {
-  align-items: flex-end;
+.fc-leftConnectors .fc-magnet {
+  align-items: center;
 }
 
-.fc-bottomConnectors .fc-magnet {
-  align-items: flex-start;
+.fc-rightConnectors .fc-magnet {
+  align-items: center;
 }
 
 .fc-connector {
@@ -183,3 +183,20 @@ body {
   vertical-align: bottom;
 }
 
+.fc-edge-label {
+  position: absolute;
+  user-select: none;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.fc-edge-label-text {
+  position: absolute;
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  text-align: center;
+  font-size: 16px;
+  top: 5px;
+}

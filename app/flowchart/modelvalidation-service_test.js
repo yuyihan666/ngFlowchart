@@ -13,7 +13,7 @@ describe('The modelvalidation', function() {
   beforeEach(inject(function(Modelvalidation, flowchartConstants) {
     this.Modelvalidation = Modelvalidation;
     this.validNode = {id: 1, name: 'name', x: 10000, y: 1, connectors: []};
-    this.validConnector = {id: 1, type: flowchartConstants.bottomConnectorType};
+    this.validConnector = {id: 1, type: flowchartConstants.rightConnectorType};
 
     this.validNodes = [this.validNode,
       {id: 2, name: 'name', x: 12, y: 2131, connectors: [this.validConnector, {id: -49, type: ''}]},

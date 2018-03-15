@@ -15,7 +15,7 @@ describe('The mouse-overservice', function() {
     this.mouseoverservice = Mouseoverfactory(this.$scope.mouseOver, this.applyFunction);
 
     this.node = {name: 'testnode', id: 1, x: 0, y: 0};
-    this.connector = {id: 1, type: flowchartConstants.bottomConnectorType};
+    this.connector = {id: 1, type: flowchartConstants.rightConnectorType};
     this.edge = {source: 1, destination: 2};
 
     this.event = {};

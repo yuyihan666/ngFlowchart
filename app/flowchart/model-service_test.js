@@ -22,13 +22,13 @@ describe('Test the modelservice', function() {
       nodes: [
         {
           id: 1, name: 'testNode', x: 0, y: 0,
-          connectors: [{id: 1, type: flowchartConstants.bottomConnectorType},
-            {id: 4, type: flowchartConstants.bottomConnectorType}]
+          connectors: [{id: 1, type: flowchartConstants.rightConnectorType},
+            {id: 4, type: flowchartConstants.rightConnectorType}]
         },
         {
           id: 2, name: 'testNode', x: 100, y: 100,
-          connectors: [{id: 2, type: flowchartConstants.bottomConnectorType},
-            {id: 3, type: flowchartConstants.topConnectorType}]
+          connectors: [{id: 2, type: flowchartConstants.rightConnectorType},
+            {id: 3, type: flowchartConstants.leftConnectorType}]
         },
         {
           id: 3, name: 'testNode3', x: 200, y: 200, connectors: []
@@ -133,7 +133,7 @@ describe('Test the modelservice', function() {
 
     it('_addConnector', function() {
       var that = this;
-      var newConnector = {id: 10, type: flowchartConstants.topConnectorType};
+      var newConnector = {id: 10, type: flowchartConstants.leftConnectorType};
 
       this.Modelvalidation.validateNode.and.throwError(new Error('Test'));
       expect(function() {that.modelservice.nodes._addConnector(that.model.nodes[0], angular.copy(newConnector));}).toThrowError('Test');
@@ -200,8 +200,8 @@ describe('Test the modelservice', function() {
     });
 
     it('should filter connector by types', function() {
-      expect(this.modelservice.nodes.getConnectorsByType(this.model.nodes[1], flowchartConstants.bottomConnectorType)).toEqual([this.MODEL.nodes[1].connectors[0]]);
-      expect(this.modelservice.nodes.getConnectorsByType(this.model.nodes[0], flowchartConstants.topConnectorType)).toEqual([]);
+      expect(this.modelservice.nodes.getConnectorsByType(this.model.nodes[1], flowchartConstants.rightConnectorType)).toEqual([this.MODEL.nodes[1].connectors[0]]);
+      expect(this.modelservice.nodes.getConnectorsByType(this.model.nodes[0], flowchartConstants.leftConnectorType)).toEqual([]);
     });
 
     it('getSelectedNodes should return selected nodes', function() {

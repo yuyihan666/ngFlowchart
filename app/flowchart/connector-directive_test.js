@@ -7,7 +7,7 @@ describe('test for connector directive', function() {
   var flowchartConstants;
 
   var connector = {
-    type: 'topConnector',
+    type: 'leftConnector',
     id: 1
   };
 

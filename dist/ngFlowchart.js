@@ -110,31 +110,6 @@ if (!Function.prototype.bind) {
 
   'use strict';
 
-  angular
-    .module('flowchart')
-    .provider('NodeTemplatePath', NodeTemplatePath);
-
-  function NodeTemplatePath() {
-    var templatePath = "flowchart/node.html";
-
-    this.setTemplatePath = setTemplatePath;
-    this.$get = NodeTemplatePath;
-
-    function setTemplatePath(path) {
-      templatePath = path;
-    }
-
-    function NodeTemplatePath() {
-      return templatePath;
-    }
-  }
-
-}());
-
-(function() {
-
-  'use strict';
-
   function Nodedraggingfactory(flowchartConstants) {
     return function(modelservice, nodeDraggingScope, applyFunction, automaticResize, dragAnimation) {
 
@@ -270,6 +245,31 @@ if (!Function.prototype.bind) {
   angular
     .module('flowchart')
     .factory('Nodedraggingfactory', Nodedraggingfactory);
+
+}());
+
+(function() {
+
+  'use strict';
+
+  angular
+    .module('flowchart')
+    .provider('NodeTemplatePath', NodeTemplatePath);
+
+  function NodeTemplatePath() {
+    var templatePath = "flowchart/node.html";
+
+    this.setTemplatePath = setTemplatePath;
+    this.$get = NodeTemplatePath;
+
+    function setTemplatePath(path) {
+      templatePath = path;
+    }
+
+    function NodeTemplatePath() {
+      return templatePath;
+    }
+  }
 
 }());
 
@@ -539,17 +539,18 @@ if (!Function.prototype.bind) {
 
   'use strict';
 
-  function Modelfactory(Modelvalidation) {
+  function Modelfactory($q, Modelvalidation) {
     var connectorsHtmlElements = {};
     var canvasHtmlElement = null;
     var svgHtmlElement = null;
 
-    return function innerModelfactory(model, selectedObjects, edgeAddedCallback, nodeRemovedCallback, edgeRemovedCallback) {
+    return function innerModelfactory(model, selectedObjects, createEdge, edgeAddedCallback, nodeRemovedCallback, edgeRemovedCallback) {
       Modelvalidation.validateModel(model);
       var modelservice = {
         selectedObjects: selectedObjects
       };
 
+      modelservice.createEdge = createEdge || function() { return $q.when({ label: "label" })};
       modelservice.edgeAddedCallback = edgeAddedCallback || angular.noop;
       modelservice.nodeRemovedCallback = nodeRemovedCallback || angular.noop;
       modelservice.edgeRemovedCallback = edgeRemovedCallback || angular.noop;
@@ -709,7 +710,19 @@ if (!Function.prototype.bind) {
           return node.connectors.map(function(connector) {
             return connector.id
           });
+        },
+
+        getNodeByConnectorId: function(connectorId) {
+          for (var i = 0; i < model.nodes.length; i++) {
+            var node = model.nodes[i];
+            var connectorIds = this.getConnectorIds(node);
+            if (connectorIds.indexOf(connectorId) > -1) {
+              return node;
+            }
+          }
+          return null;
         }
+
       };
 
       modelservice.edges = {
@@ -758,10 +771,17 @@ if (!Function.prototype.bind) {
         _addEdge: function(sourceConnector, destConnector) {
           Modelvalidation.validateConnector(sourceConnector);
           Modelvalidation.validateConnector(destConnector);
-          var edge = {source: sourceConnector.id, destination: destConnector.id};
-          Modelvalidation.validateEdges(model.edges.concat([edge]), model.nodes);
-          model.edges.push(edge);
-          modelservice.edgeAddedCallback(edge);
+          var sourceNode = modelservice.nodes.getNodeByConnectorId(sourceConnector.id);
+          var destNode = modelservice.nodes.getNodeByConnectorId(destConnector.id);
+          modelservice.createEdge(sourceNode, destNode).then(
+            function (edge) {
+              edge.source = sourceConnector.id;
+              edge.destination = destConnector.id;
+              Modelvalidation.validateEdges(model.edges.concat([edge]), model.nodes);
+              model.edges.push(edge);
+              modelservice.edgeAddedCallback(edge);
+            }
+          );
         }
       };
 
@@ -815,7 +835,7 @@ if (!Function.prototype.bind) {
     }
 
   }
-  Modelfactory.$inject = ["Modelvalidation"];
+  Modelfactory.$inject = ["$q", "Modelvalidation"];
 
   angular.module('flowchart')
     .service('Modelfactory', Modelfactory);
@@ -851,8 +871,8 @@ if (!Function.prototype.bind) {
 
   var constants = {
     htmlPrefix: 'fc',
-    topConnectorType: 'topConnector',
-    bottomConnectorType: 'bottomConnector',
+    leftConnectorType: 'leftConnector',
+    rightConnectorType: 'rightConnector',
     curvedStyle: 'curved',
     lineStyle: 'line',
     dragAnimationRepaint: 'repaint',
@@ -867,8 +887,8 @@ if (!Function.prototype.bind) {
   constants.connectorClass = constants.htmlPrefix + '-connector';
   constants.magnetClass = constants.htmlPrefix + '-magnet';
   constants.nodeClass = constants.htmlPrefix + '-node';
-  constants.topConnectorClass = constants.htmlPrefix + '-' + constants.topConnectorType + 's';
-  constants.bottomConnectorClass = constants.htmlPrefix + '-' + constants.bottomConnectorType + 's';
+  constants.leftConnectorClass = constants.htmlPrefix + '-' + constants.leftConnectorType + 's';
+  constants.rightConnectorClass = constants.htmlPrefix + '-' + constants.rightConnectorType + 's';
   constants.canvasResizeThreshold = 200;
   constants.canvasResizeStep = 200;
 
@@ -906,12 +926,19 @@ if (!Function.prototype.bind) {
       if (style === flowchartConstants.curvedStyle) {
         var sourceTangent = computeEdgeSourceTangent(pt1, pt2);
         var destinationTangent = computeEdgeDestinationTangent(pt1, pt2);
-        dAddribute += 'C ' + sourceTangent.x + ', ' + sourceTangent.y + ' ' + destinationTangent.x + ', ' + destinationTangent.y + ' ' + pt2.x + ', ' + pt2.y;
+        dAddribute += 'C ' + sourceTangent.x + ', ' + sourceTangent.y + ' ' + (destinationTangent.x-50) + ', ' + destinationTangent.y + ' ' + pt2.x + ', ' + pt2.y;
       } else {
         dAddribute += 'L ' + pt2.x + ', ' + pt2.y;
       }
       return dAddribute;
     };
+
+    this.getEdgeCenter = function(pt1, pt2) {
+      return {
+          x: (pt1.x + pt2.x)/2,
+          y: (pt1.y + pt2.y)/2
+      };
+    }
   }
   Edgedrawingservice.$inject = ["flowchartConstants"];
 
@@ -949,7 +976,7 @@ if (!Function.prototype.bind) {
       edgedraggingService.dragstart = function(connector) {
         return function(event) {
 
-          if (connector.type == flowchartConstants.topConnectorType) {
+          if (connector.type == flowchartConstants.leftConnectorType) {
             for (var i = 0; i < model.edges.length; i++) {
               if (model.edges[i].destination == connector.id) {
                 var swapConnector = modelservice.connectors.getConnector(model.edges[i].source);
@@ -1337,7 +1364,7 @@ if (!Function.prototype.bind) {
       }
     });
 
-    $scope.modelservice = Modelfactory($scope.model, $scope.selectedObjects, $scope.userCallbacks.edgeAdded || angular.noop, $scope.userCallbacks.nodeRemoved || angular.noop,  $scope.userCallbacks.edgeRemoved || angular.noop);
+    $scope.modelservice = Modelfactory($scope.model, $scope.selectedObjects, $scope.userCallbacks.createEdge, $scope.userCallbacks.edgeAdded || angular.noop, $scope.userCallbacks.nodeRemoved || angular.noop,  $scope.userCallbacks.edgeRemoved || angular.noop);
 
     $scope.nodeDragging = {};
     var nodedraggingservice = Nodedraggingfactory($scope.modelservice, $scope.nodeDragging, $scope.$apply.bind($scope), $scope.automaticResize, $scope.dragAnimation);
@@ -1401,6 +1428,8 @@ if (!Function.prototype.bind) {
     };
 
     $scope.getEdgeDAttribute = Edgedrawingservice.getEdgeDAttribute;
+    $scope.getEdgeCenter = Edgedrawingservice.getEdgeCenter;
+
   }
   canvasController.$inject = ["$scope", "Mouseoverfactory", "Nodedraggingfactory", "Modelfactory", "Edgedraggingfactory", "Edgedrawingservice", "FlowchartCanvasService"];
 
@@ -1422,6 +1451,11 @@ module.run(['$templateCache', function($templateCache) {
   $templateCache.put('flowchart/canvas.html',
     '<div ng-click="canvasClick($event)">\n' +
     '  <svg>\n' +
+    '    <defs>\n' +
+    '      <marker id="arrow" markerWidth="5" markerHeight="5" viewBox="-6 -6 12 12" refX="10" refY="0" markerUnits="strokeWidth" orient="auto">\n' +
+    '        <polygon points="-2,0 -5,5 5,0 -5,-5" fill="gray" stroke="black" stroke-width="1px"/>\n' +
+    '      </marker>\n' +
+    '    </defs>\n' +
     '    <g ng-repeat="edge in model.edges">\n' +
     '      <path\n' +
     '        ng-click="edgeClick($event, edge)"\n' +
@@ -1430,7 +1464,14 @@ module.run(['$templateCache', function($templateCache) {
     '        ng-mouseenter="edgeMouseEnter($event, edge)"\n' +
     '        ng-mouseleave="edgeMouseLeave($event, edge)"\n' +
     '        ng-attr-class="{{(modelservice.edges.isSelected(edge) && flowchartConstants.selectedClass + \' \' + flowchartConstants.edgeClass) || edge == mouseOver.edge && flowchartConstants.hoverClass + \' \' + flowchartConstants.edgeClass || edge.active && flowchartConstants.activeClass + \' \' + flowchartConstants.edgeClass || flowchartConstants.edgeClass}}"\n' +
-    '        ng-attr-d="{{getEdgeDAttribute(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge), edgeStyle)}}"></path>\n' +
+    '        ng-attr-d="{{getEdgeDAttribute(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge), edgeStyle)}}"\n' +
+    '        marker-end="url(#arrow)"></path>\n' +
+    '      <!--text\n' +
+    '        text-anchor="middle"\n' +
+    '        ng-attr-x="{{getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).x}}"\n' +
+    '        ng-attr-y="{{getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).y-10}}">\n' +
+    '        {{edge.label}}\n' +
+    '      </text-->\n' +
     '    </g>\n' +
     '    <g ng-if="dragAnimation == flowchartConstants.dragAnimationRepaint && edgeDragging.isDragging">\n' +
     '\n' +
@@ -1452,6 +1493,14 @@ module.run(['$templateCache', function($templateCache) {
     '           callbacks="callbacks"\n' +
     '           user-node-callbacks="userNodeCallbacks"\n' +
     '           ng-repeat="node in model.nodes"></fc-node>\n' +
+    '  <div class="fc-edge-label"\n' +
+    '       ng-style="{ top: (getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).y-10)+\'px\',\n' +
+    '                   left: (getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).x)+\'px\'}"\n' +
+    '       ng-repeat="edge in model.edges">\n' +
+    '    <div class="fc-edge-label-text">\n' +
+    '      <span style="border: solid #ff3d00; border-radius: 10px; color: #ff3d00; background-color: #fff; padding-left: 5px; padding-right: 5px; padding-top: 3px; padding-bottom: 3px;">{{edge.label}}</span>\n' +
+    '    </div>\n' +
+    '  </div>\n' +
     '</div>\n' +
     '');
 }]);
@@ -1472,15 +1521,15 @@ module.run(['$templateCache', function($templateCache) {
     '  <div class="innerNode">\n' +
     '    <p>{{ node.name }}</p>\n' +
     '\n' +
-    '    <div class="{{flowchartConstants.topConnectorClass}}">\n' +
+    '    <div class="{{flowchartConstants.leftConnectorClass}}">\n' +
     '      <div fc-magnet\n' +
-    '           ng-repeat="connector in modelservice.nodes.getConnectorsByType(node, flowchartConstants.topConnectorType)">\n' +
+    '           ng-repeat="connector in modelservice.nodes.getConnectorsByType(node, flowchartConstants.leftConnectorType)">\n' +
     '        <div fc-connector></div>\n' +
     '      </div>\n' +
     '    </div>\n' +
-    '    <div class="{{flowchartConstants.bottomConnectorClass}}">\n' +
+    '    <div class="{{flowchartConstants.rightConnectorClass}}">\n' +
     '      <div fc-magnet\n' +
-    '           ng-repeat="connector in modelservice.nodes.getConnectorsByType(node, flowchartConstants.bottomConnectorType)">\n' +
+    '           ng-repeat="connector in modelservice.nodes.getConnectorsByType(node, flowchartConstants.rightConnectorType)">\n' +
     '        <div fc-connector></div>\n' +
     '      </div>\n' +
     '    </div>\n' +
@@ -1506,13 +1555,13 @@ module.run(['$templateCache', function($templateCache) {
     '  ng-attr-style="position: absolute; top: {{ node.y }}px; left: {{ node.x }}px; background: {{ node.color }}; border-color: {{node.borderColor}}">\n' +
     '  <p>{{ node.name }}</p>\n' +
     '\n' +
-    '  <div class="{{flowchartConstants.topConnectorClass}}">\n' +
+    '  <div class="{{flowchartConstants.leftConnectorClass}}">\n' +
     '    <div fc-connector\n' +
-    '         ng-repeat="connector in modelservice.nodes.getConnectorsByType(node, flowchartConstants.topConnectorType)"></div>\n' +
+    '         ng-repeat="connector in modelservice.nodes.getConnectorsByType(node, flowchartConstants.leftConnectorType)"></div>\n' +
     '  </div>\n' +
-    '  <div class="{{flowchartConstants.bottomConnectorClass}}">\n' +
+    '  <div class="{{flowchartConstants.rightConnectorClass}}">\n' +
     '    <div fc-connector\n' +
-    '         ng-repeat="connector in modelservice.nodes.getConnectorsByType(node, flowchartConstants.bottomConnectorType)"></div>\n' +
+    '         ng-repeat="connector in modelservice.nodes.getConnectorsByType(node, flowchartConstants.rightConnectorType)"></div>\n' +
     '  </div>\n' +
     '</div>\n' +
     '');

@@ -35,8 +35,8 @@ describe('edgedragging-service_test', function() {
     this.dragAnimation = flowchartConstants.dragAnimationRepaint;
     this.edgeStyle = flowchartConstants.lineStyle;
 
-    this.connector = {id: 1, type: flowchartConstants.bottomConnectorType};
-    this.destinationConnector = {id: 2, type: flowchartConstants.bottomConnectorType};
+    this.connector = {id: 1, type: flowchartConstants.rightConnectorType};
+    this.destinationConnector = {id: 2, type: flowchartConstants.rightConnectorType};
     this.connectorCoords = {x: 100, y: 100};
 
     this.modelservice = jasmine.createSpyObj('modelservice', ['getCanvasHtmlElement']);
@@ -123,7 +123,7 @@ describe('edgedragging-service_test', function() {
   it('dragend should reset the scope and call stopPropagation', function() {
     this.edgedraggingService.dragstart(angular.copy(this.connector))(this.startEvent);
     this.edgedraggingService.dragend(this.endEvent);
-    
+
     expect(this.edgeDragging.isDragging).toBe(false);
     expect(this.edgeDragging.dragPoint1).toBeNull();
     expect(this.edgeDragging.dragPoint2).toBeNull();

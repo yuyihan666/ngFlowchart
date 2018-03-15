@@ -2,17 +2,18 @@
 
   'use strict';
 
-  function Modelfactory(Modelvalidation) {
+  function Modelfactory($q, Modelvalidation) {
     var connectorsHtmlElements = {};
     var canvasHtmlElement = null;
     var svgHtmlElement = null;
 
-    return function innerModelfactory(model, selectedObjects, edgeAddedCallback, nodeRemovedCallback, edgeRemovedCallback) {
+    return function innerModelfactory(model, selectedObjects, createEdge, edgeAddedCallback, nodeRemovedCallback, edgeRemovedCallback) {
       Modelvalidation.validateModel(model);
       var modelservice = {
         selectedObjects: selectedObjects
       };
 
+      modelservice.createEdge = createEdge || function() { return $q.when({ label: "label" })};
       modelservice.edgeAddedCallback = edgeAddedCallback || angular.noop;
       modelservice.nodeRemovedCallback = nodeRemovedCallback || angular.noop;
       modelservice.edgeRemovedCallback = edgeRemovedCallback || angular.noop;
@@ -172,7 +173,19 @@
           return node.connectors.map(function(connector) {
             return connector.id
           });
+        },
+
+        getNodeByConnectorId: function(connectorId) {
+          for (var i = 0; i < model.nodes.length; i++) {
+            var node = model.nodes[i];
+            var connectorIds = this.getConnectorIds(node);
+            if (connectorIds.indexOf(connectorId) > -1) {
+              return node;
+            }
+          }
+          return null;
         }
+
       };
 
       modelservice.edges = {
@@ -221,10 +234,17 @@
         _addEdge: function(sourceConnector, destConnector) {
           Modelvalidation.validateConnector(sourceConnector);
           Modelvalidation.validateConnector(destConnector);
-          var edge = {source: sourceConnector.id, destination: destConnector.id};
-          Modelvalidation.validateEdges(model.edges.concat([edge]), model.nodes);
-          model.edges.push(edge);
-          modelservice.edgeAddedCallback(edge);
+          var sourceNode = modelservice.nodes.getNodeByConnectorId(sourceConnector.id);
+          var destNode = modelservice.nodes.getNodeByConnectorId(destConnector.id);
+          modelservice.createEdge(sourceNode, destNode).then(
+            function (edge) {
+              edge.source = sourceConnector.id;
+              edge.destination = destConnector.id;
+              Modelvalidation.validateEdges(model.edges.concat([edge]), model.nodes);
+              model.edges.push(edge);
+              modelservice.edgeAddedCallback(edge);
+            }
+          );
         }
       };
 

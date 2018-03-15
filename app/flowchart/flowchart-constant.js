@@ -4,8 +4,8 @@
 
   var constants = {
     htmlPrefix: 'fc',
-    topConnectorType: 'topConnector',
-    bottomConnectorType: 'bottomConnector',
+    leftConnectorType: 'leftConnector',
+    rightConnectorType: 'rightConnector',
     curvedStyle: 'curved',
     lineStyle: 'line',
     dragAnimationRepaint: 'repaint',
@@ -20,8 +20,8 @@
   constants.connectorClass = constants.htmlPrefix + '-connector';
   constants.magnetClass = constants.htmlPrefix + '-magnet';
   constants.nodeClass = constants.htmlPrefix + '-node';
-  constants.topConnectorClass = constants.htmlPrefix + '-' + constants.topConnectorType + 's';
-  constants.bottomConnectorClass = constants.htmlPrefix + '-' + constants.bottomConnectorType + 's';
+  constants.leftConnectorClass = constants.htmlPrefix + '-' + constants.leftConnectorType + 's';
+  constants.rightConnectorClass = constants.htmlPrefix + '-' + constants.rightConnectorType + 's';
   constants.canvasResizeThreshold = 200;
   constants.canvasResizeStep = 200;
 

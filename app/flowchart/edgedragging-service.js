@@ -26,7 +26,7 @@
       edgedraggingService.dragstart = function(connector) {
         return function(event) {
 
-          if (connector.type == flowchartConstants.topConnectorType) {
+          if (connector.type == flowchartConstants.leftConnectorType) {
             for (var i = 0; i < model.edges.length; i++) {
               if (model.edges[i].destination == connector.id) {
                 var swapConnector = modelservice.connectors.getConnector(model.edges[i].source);

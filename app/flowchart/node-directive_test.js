@@ -11,11 +11,11 @@ describe('test for node directive', function() {
     name: 'testnode',
     connectors: [
       {
-        type: 'bottomConnector',
+        type: 'rightConnector',
         id: 1
       },
       {
-        type: 'topConnector',
+        type: 'leftConnector',
         id: 2
       }
     ]
@@ -26,11 +26,11 @@ describe('test for node directive', function() {
     name: 'testnode2',
     connectors: [
       {
-        type: 'bottomConnector',
+        type: 'rightConnector',
         id: 3
       },
       {
-        type: 'topConnector',
+        type: 'leftConnector',
         id: 4
       }
     ]
