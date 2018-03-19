@@ -3,33 +3,39 @@
   'use strict';
 
   function Modelfactory($q, Modelvalidation) {
-    var connectorsHtmlElements = {};
-    var canvasHtmlElement = null;
-    var svgHtmlElement = null;
 
-    return function innerModelfactory(model, selectedObjects, createEdge, edgeAddedCallback, nodeRemovedCallback, edgeRemovedCallback) {
+    return function innerModelfactory(model, selectedObjects, dropNode, createEdge, edgeAddedCallback, nodeRemovedCallback, edgeRemovedCallback) {
       Modelvalidation.validateModel(model);
       var modelservice = {
         selectedObjects: selectedObjects
       };
 
+      modelservice.connectorsHtmlElements = {};
+      modelservice.canvasHtmlElement = null;
+      modelservice.svgHtmlElement = null;
+
+      modelservice.dropNode = dropNode || angular.noop;
       modelservice.createEdge = createEdge || function() { return $q.when({ label: "label" })};
       modelservice.edgeAddedCallback = edgeAddedCallback || angular.noop;
       modelservice.nodeRemovedCallback = nodeRemovedCallback || angular.noop;
       modelservice.edgeRemovedCallback = edgeRemovedCallback || angular.noop;
 
       function selectObject(object) {
-        if (modelservice.selectedObjects.indexOf(object) === -1) {
-          modelservice.selectedObjects.push(object);
+        if (modelservice.isEditable()) {
+          if (modelservice.selectedObjects.indexOf(object) === -1) {
+            modelservice.selectedObjects.push(object);
+          }
         }
       }
 
       function deselectObject(object) {
-        var index = modelservice.selectedObjects.indexOf(object);
-        if (index === -1) {
-          throw new Error('Tried to deselect an unselected object');
+        if (modelservice.isEditable()) {
+          var index = modelservice.selectedObjects.indexOf(object);
+          if (index === -1) {
+            throw new Error('Tried to deselect an unselected object');
+          }
+          modelservice.selectedObjects.splice(index, 1);
         }
-        modelservice.selectedObjects.splice(index, 1);
       }
 
       function toggleSelectedObject(object) {
@@ -57,11 +63,11 @@
         },
 
         setHtmlElement: function(connectorId, element) {
-          connectorsHtmlElements[connectorId] = element;
+          modelservice.connectorsHtmlElements[connectorId] = element;
         },
 
         getHtmlElement: function(connectorId) {
-          return connectorsHtmlElements[connectorId];
+          return modelservice.connectorsHtmlElements[connectorId];
         },
 
         _getCoords: function(connectorId, centered) {
@@ -272,20 +278,36 @@
         });
       };
 
+      modelservice.setDropTargetId = function(dropTargetId) {
+        modelservice.dropTargetId = dropTargetId;
+      };
+
+      modelservice.getDropTargetId = function() {
+        return modelservice.dropTargetId;
+      };
+
+      modelservice.isDropSource = function() {
+        return modelservice.dropTargetId;
+      };
+
+      modelservice.isEditable = function() {
+        return !modelservice.dropTargetId;
+      };
+
       modelservice.setCanvasHtmlElement = function(element) {
-        canvasHtmlElement = element;
+        modelservice.canvasHtmlElement = element;
       };
 
       modelservice.getCanvasHtmlElement = function() {
-        return canvasHtmlElement;
+        return modelservice.canvasHtmlElement;
       };
 
       modelservice.setSvgHtmlElement = function(element) {
-        svgHtmlElement = element;
+        modelservice.svgHtmlElement = element;
       };
 
       modelservice.getSvgHtmlElement = function() {
-        return svgHtmlElement;
+        return modelservice.svgHtmlElement;
       };
 
       modelservice.registerCallbacks = function (edgeAddedCallback, nodeRemovedCallback, edgeRemovedCallback) {

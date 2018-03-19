@@ -2,38 +2,46 @@
 
   'use strict';
 
-  function CanvasService($rootScope) {
+  function CanvasFactory($rootScope) {
 
-    var canvasHtmlElement;
+    return function innerCanvasFactory() {
 
-    this.setCanvasHtmlElement = function(element) {
-      canvasHtmlElement = element;
-    };
+      var canvasService = {
+      };
 
-    this.getCanvasHtmlElement = function() {
-      return canvasHtmlElement;
-    };
+      canvasService.setCanvasHtmlElement = function(element) {
+        canvasService.canvasHtmlElement = element;
+      };
 
-    this.dragover = function(scope, callback) {
+      canvasService.getCanvasHtmlElement = function() {
+        return canvasService.canvasHtmlElement;
+      };
+
+      canvasService.dragover = function(scope, callback) {
         var handler = $rootScope.$on('notifying-dragover-event', callback);
         scope.$on('$destroy', handler);
-    };
-    
-    this._notifyDragover = function(event) {
-      $rootScope.$emit('notifying-dragover-event', event);
+      };
+
+      canvasService._notifyDragover = function(event) {
+        $rootScope.$emit('notifying-dragover-event', event);
+      };
+
+      canvasService.drop = function(scope, callback) {
+        var handler = $rootScope.$on('notifying-drop-event', callback);
+        scope.$on('$destroy', handler);
+      };
+
+      canvasService._notifyDrop = function(event) {
+        $rootScope.$emit('notifying-drop-event', event);
+      };
+
+      return canvasService;
     };
 
-    this.drop = function(scope, callback) {
-      var handler = $rootScope.$on('notifying-drop-event', callback);
-      scope.$on('$destroy', handler);
-    };
 
-    this._notifyDrop = function(event) {
-      $rootScope.$emit('notifying-drop-event', event);
-    };
   }
 
   angular.module('flowchart')
-      .service('FlowchartCanvasService', CanvasService);
+      .service('FlowchartCanvasFactory', CanvasFactory);
 
 }());

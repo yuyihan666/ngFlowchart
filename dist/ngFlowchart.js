@@ -111,12 +111,17 @@ if (!Function.prototype.bind) {
   'use strict';
 
   function Nodedraggingfactory(flowchartConstants) {
+
+    var nodeDropScope = {};
+    nodeDropScope.dropElement = null;
+
     return function(modelservice, nodeDraggingScope, applyFunction, automaticResize, dragAnimation) {
 
       var dragOffset = {};
       var draggedElement = null;
       nodeDraggingScope.draggedNode = null;
       nodeDraggingScope.shadowDragStarted = false;
+      nodeDraggingScope.dropElement = null;
 
       var destinationHtmlElement = null;
       var oldDisplayStyle = "";
@@ -133,7 +138,7 @@ if (!Function.prototype.bind) {
         return getCoordinate(y, modelservice.getCanvasHtmlElement().offsetHeight);
       }
       function resizeCanvas(draggedNode, nodeElement) {
-        if (automaticResize) {
+        if (automaticResize && !modelservice.isDropSource()) {
           var canvasElement = modelservice.getCanvasHtmlElement();
           if (canvasElement.offsetWidth < draggedNode.x + nodeElement.offsetWidth + flowchartConstants.canvasResizeThreshold) {
             canvasElement.style.width = canvasElement.offsetWidth + flowchartConstants.canvasResizeStep + 'px';
@@ -146,28 +151,65 @@ if (!Function.prototype.bind) {
       return {
         dragstart: function(node) {
           return function(event) {
+            var element = angular.element(event.target);
+            var offsetX = parseInt(element.css('left')) - event.clientX;
+            var offsetY = parseInt(element.css('top')) - event.clientY;
+            if (modelservice.isDropSource()) {
+              if (nodeDropScope.dropElement) {
+                nodeDropScope.dropElement.parentNode.removeChild(nodeDropScope.dropElement);
+                nodeDropScope.dropElement = null;
+              }
+              nodeDropScope.dropElement = element[0].cloneNode(true);
+
+              var offset = angular.element(modelservice.getCanvasHtmlElement()).offset();
+
+              nodeDropScope.dropElement.offsetInfo = {
+                offsetX: offsetX + offset.left,
+                offsetY: offsetY + offset.top
+              };
+              nodeDropScope.dropElement.style.position = 'absolute';
+              nodeDropScope.dropElement.style.pointerEvents = 'none';
+              document.body.appendChild(nodeDropScope.dropElement);
+
+              var dropNodeInfo = {
+                node: node,
+                dropTargetId: modelservice.getDropTargetId(),
+                offsetX: offsetX + offset.left,
+                offsetY: offsetY + offset.top
+              };
+              event.originalEvent.dataTransfer.setData('text', angular.toJson(dropNodeInfo));
+
+              if (event.originalEvent.dataTransfer.setDragImage) {
+                var invisibleDiv = angular.element('<div></div>')[0]; // This divs stays invisible, because it is not in the dom.
+                event.originalEvent.dataTransfer.setDragImage(invisibleDiv, 0, 0);
+              } else {
+                destinationHtmlElement = event.target;
+                oldDisplayStyle = destinationHtmlElement.style.display;
+                event.target.style.display = 'none'
+                nodeDraggingScope.shadowDragStarted = true;
+              }
+              return;
+            }
             modelservice.deselectAll();
             modelservice.nodes.select(node);
             nodeDraggingScope.draggedNode = node;
             draggedElement = event.target;
 
-            var element = angular.element(event.target);
-            dragOffset.x = parseInt(element.css('left')) - event.clientX;
-            dragOffset.y = parseInt(element.css('top')) - event.clientY;
+            dragOffset.x = offsetX;
+            dragOffset.y = offsetY;
 
             if (dragAnimation == flowchartConstants.dragAnimationShadow) {
               var shadowElement = angular.element('<div style="position: absolute; opacity: 0.7; top: '+ getYCoordinate(dragOffset.y + event.clientY) +'px; left: '+ getXCoordinate(dragOffset.x + event.clientX) +'px; "><div class="innerNode"><p style="padding: 0 15px;">'+ nodeDraggingScope.draggedNode.name +'</p> </div></div>');
               var targetInnerNode = angular.element(event.target).children()[0];
               shadowElement.children()[0].style.backgroundColor = targetInnerNode.style.backgroundColor;
               nodeDraggingScope.shadowElement = shadowElement;
-              var canvasElement = modelservice.getCanvasHtmlElement();
-              canvasElement.appendChild(nodeDraggingScope.shadowElement[0]);
+              modelservice.getCanvasHtmlElement().appendChild(nodeDraggingScope.shadowElement[0]);
             }
 
-            event.dataTransfer.setData('Text', 'Just to support firefox');
-            if (event.dataTransfer.setDragImage) {
+            event.originalEvent.dataTransfer.setData('text', 'Just to support firefox');
+            if (event.originalEvent.dataTransfer.setDragImage) {
               var invisibleDiv = angular.element('<div></div>')[0]; // This divs stays invisible, because it is not in the dom.
-              event.dataTransfer.setDragImage(invisibleDiv, 0, 0);
+              event.originalEvent.dataTransfer.setDragImage(invisibleDiv, 0, 0);
             } else {
               destinationHtmlElement = event.target;
               oldDisplayStyle = destinationHtmlElement.style.display;
@@ -182,7 +224,36 @@ if (!Function.prototype.bind) {
         },
 
         drop: function(event) {
-          if (nodeDraggingScope.draggedNode) {
+          if (modelservice.isDropSource()) {
+            event.originalEvent.dataTransfer.clearData();
+            event.preventDefault();
+            return false;
+          }
+          var dropNode = null;
+          var infoText = event.originalEvent.dataTransfer.getData('text');
+          if (infoText) {
+            var dropNodeInfo = null;
+            try {
+                dropNodeInfo = angular.fromJson(infoText);
+            } catch (e) {}
+            if (dropNodeInfo && dropNodeInfo.dropTargetId) {
+              if (modelservice.getCanvasHtmlElement().id &&
+                modelservice.getCanvasHtmlElement().id == dropNodeInfo.dropTargetId) {
+                event.originalEvent.dataTransfer.clearData();
+                dropNode = dropNodeInfo.node;
+                var offset = angular.element(modelservice.getCanvasHtmlElement()).offset();
+                var x = Math.round(event.clientX - offset.left);
+                var y = Math.round(event.clientY - offset.top);
+                dropNode.x = getXCoordinate(dropNodeInfo.offsetX + x);
+                dropNode.y = getYCoordinate(dropNodeInfo.offsetY + y);
+              }
+             }
+          }
+          if (dropNode) {
+              modelservice.dropNode(dropNode);
+              event.preventDefault();
+              return false;
+          } else if (nodeDraggingScope.draggedNode) {
             return applyFunction(function() {
               nodeDraggingScope.draggedNode.x = getXCoordinate(dragOffset.x + event.clientX);
               nodeDraggingScope.draggedNode.y = getYCoordinate(dragOffset.y + event.clientY);
@@ -191,8 +262,28 @@ if (!Function.prototype.bind) {
             })
           }
         },
-
         dragover: function(event) {
+          if (nodeDropScope.dropElement) {
+              var offsetInfo = nodeDropScope.dropElement.offsetInfo;
+              nodeDropScope.dropElement.style.left = (offsetInfo.offsetX + event.clientX) + 'px';
+              nodeDropScope.dropElement.style.top = (offsetInfo.offsetY + event.clientY) + 'px';
+              if(nodeDraggingScope.shadowDragStarted) {
+                applyFunction(function() {
+                  destinationHtmlElement.style.display = oldDisplayStyle;
+                  nodeDraggingScope.shadowDragStarted = false;
+                });
+              }
+              event.preventDefault();
+              return;
+          }
+          if (modelservice.isDropSource()) {
+            event.preventDefault();
+            return;
+          }
+          if (!nodeDraggingScope.draggedNode) {
+            event.preventDefault();
+            return;
+          }
           if (dragAnimation == flowchartConstants.dragAnimationRepaint) {
             if (nodeDraggingScope.draggedNode) {
               return applyFunction(function() {
@@ -221,6 +312,14 @@ if (!Function.prototype.bind) {
 
         dragend: function(event) {
           applyFunction(function() {
+            if (nodeDropScope.dropElement) {
+              nodeDropScope.dropElement.parentNode.removeChild(nodeDropScope.dropElement);
+              nodeDropScope.dropElement = null;
+            }
+            if (modelservice.isDropSource()) {
+              event.originalEvent.dataTransfer.clearData();
+              return;
+            }
             if (nodeDraggingScope.shadowElement) {
               nodeDraggingScope.draggedNode.x = parseInt(nodeDraggingScope.shadowElement.css('left').replace('px',''));
               nodeDraggingScope.draggedNode.y = parseInt(nodeDraggingScope.shadowElement.css('top').replace('px',''));
@@ -540,33 +639,39 @@ if (!Function.prototype.bind) {
   'use strict';
 
   function Modelfactory($q, Modelvalidation) {
-    var connectorsHtmlElements = {};
-    var canvasHtmlElement = null;
-    var svgHtmlElement = null;
 
-    return function innerModelfactory(model, selectedObjects, createEdge, edgeAddedCallback, nodeRemovedCallback, edgeRemovedCallback) {
+    return function innerModelfactory(model, selectedObjects, dropNode, createEdge, edgeAddedCallback, nodeRemovedCallback, edgeRemovedCallback) {
       Modelvalidation.validateModel(model);
       var modelservice = {
         selectedObjects: selectedObjects
       };
 
+      modelservice.connectorsHtmlElements = {};
+      modelservice.canvasHtmlElement = null;
+      modelservice.svgHtmlElement = null;
+
+      modelservice.dropNode = dropNode || angular.noop;
       modelservice.createEdge = createEdge || function() { return $q.when({ label: "label" })};
       modelservice.edgeAddedCallback = edgeAddedCallback || angular.noop;
       modelservice.nodeRemovedCallback = nodeRemovedCallback || angular.noop;
       modelservice.edgeRemovedCallback = edgeRemovedCallback || angular.noop;
 
       function selectObject(object) {
-        if (modelservice.selectedObjects.indexOf(object) === -1) {
-          modelservice.selectedObjects.push(object);
+        if (modelservice.isEditable()) {
+          if (modelservice.selectedObjects.indexOf(object) === -1) {
+            modelservice.selectedObjects.push(object);
+          }
         }
       }
 
       function deselectObject(object) {
-        var index = modelservice.selectedObjects.indexOf(object);
-        if (index === -1) {
-          throw new Error('Tried to deselect an unselected object');
+        if (modelservice.isEditable()) {
+          var index = modelservice.selectedObjects.indexOf(object);
+          if (index === -1) {
+            throw new Error('Tried to deselect an unselected object');
+          }
+          modelservice.selectedObjects.splice(index, 1);
         }
-        modelservice.selectedObjects.splice(index, 1);
       }
 
       function toggleSelectedObject(object) {
@@ -594,11 +699,11 @@ if (!Function.prototype.bind) {
         },
 
         setHtmlElement: function(connectorId, element) {
-          connectorsHtmlElements[connectorId] = element;
+          modelservice.connectorsHtmlElements[connectorId] = element;
         },
 
         getHtmlElement: function(connectorId) {
-          return connectorsHtmlElements[connectorId];
+          return modelservice.connectorsHtmlElements[connectorId];
         },
 
         _getCoords: function(connectorId, centered) {
@@ -809,20 +914,36 @@ if (!Function.prototype.bind) {
         });
       };
 
+      modelservice.setDropTargetId = function(dropTargetId) {
+        modelservice.dropTargetId = dropTargetId;
+      };
+
+      modelservice.getDropTargetId = function() {
+        return modelservice.dropTargetId;
+      };
+
+      modelservice.isDropSource = function() {
+        return modelservice.dropTargetId;
+      };
+
+      modelservice.isEditable = function() {
+        return !modelservice.dropTargetId;
+      };
+
       modelservice.setCanvasHtmlElement = function(element) {
-        canvasHtmlElement = element;
+        modelservice.canvasHtmlElement = element;
       };
 
       modelservice.getCanvasHtmlElement = function() {
-        return canvasHtmlElement;
+        return modelservice.canvasHtmlElement;
       };
 
       modelservice.setSvgHtmlElement = function(element) {
-        svgHtmlElement = element;
+        modelservice.svgHtmlElement = element;
       };
 
       modelservice.getSvgHtmlElement = function() {
-        return svgHtmlElement;
+        return modelservice.svgHtmlElement;
       };
 
       modelservice.registerCallbacks = function (edgeAddedCallback, nodeRemovedCallback, edgeRemovedCallback) {
@@ -1010,10 +1131,10 @@ if (!Function.prototype.bind) {
             y: event.clientY + dragOffset.y
           };
 
-          event.dataTransfer.setData('Text', 'Just to support firefox');
-          if (event.dataTransfer.setDragImage) {
+          event.originalEvent.dataTransfer.setData('Text', 'Just to support firefox');
+          if (event.originalEvent.dataTransfer.setDragImage) {
             var invisibleDiv = angular.element('<div></div>')[0]; // This divs stays invisible, because it is not in the dom.
-            event.dataTransfer.setDragImage(invisibleDiv, 0, 0);
+            event.originalEvent.dataTransfer.setDragImage(invisibleDiv, 0, 0);
           } else {
             destinationHtmlElement = event.target;
             oldDisplayStyle = destinationHtmlElement.style.display;
@@ -1215,23 +1336,24 @@ if (!Function.prototype.bind) {
     return {
       restrict: 'A',
       link: function(scope, element) {
-        element.attr('draggable', 'true');
+        if (scope.modelservice.isEditable()) {
+          element.attr('draggable', 'true');
 
-        element.on('dragover', scope.fcCallbacks.edgeDragoverConnector);
-        element.on('drop', scope.fcCallbacks.edgeDrop(scope.connector));
-        element.on('dragend', scope.fcCallbacks.edgeDragend);
-        element.on('dragstart', scope.fcCallbacks.edgeDragstart(scope.connector));
-        element.on('mouseenter', scope.fcCallbacks.connectorMouseEnter(scope.connector));
-        element.on('mouseleave', scope.fcCallbacks.connectorMouseLeave(scope.connector));
-
+          element.on('dragover', scope.fcCallbacks.edgeDragoverConnector);
+          element.on('drop', scope.fcCallbacks.edgeDrop(scope.connector));
+          element.on('dragend', scope.fcCallbacks.edgeDragend);
+          element.on('dragstart', scope.fcCallbacks.edgeDragstart(scope.connector));
+          element.on('mouseenter', scope.fcCallbacks.connectorMouseEnter(scope.connector));
+          element.on('mouseleave', scope.fcCallbacks.connectorMouseLeave(scope.connector));
+          scope.$watch('mouseOverConnector', function(value) {
+            if (value === scope.connector) {
+              element.addClass(flowchartConstants.hoverClass);
+            } else {
+              element.removeClass(flowchartConstants.hoverClass);
+            }
+          });
+        }
         element.addClass(flowchartConstants.connectorClass);
-        scope.$watch('mouseOverConnector', function(value) {
-          if (value === scope.connector) {
-            element.addClass(flowchartConstants.hoverClass);
-          } else {
-            element.removeClass(flowchartConstants.hoverClass);
-          }
-        });
 
         scope.modelservice.connectors.setHtmlElement(scope.connector.id, element[0]);
       }
@@ -1249,40 +1371,48 @@ if (!Function.prototype.bind) {
 
   'use strict';
 
-  function CanvasService($rootScope) {
+  function CanvasFactory($rootScope) {
 
-    var canvasHtmlElement;
+    return function innerCanvasFactory() {
 
-    this.setCanvasHtmlElement = function(element) {
-      canvasHtmlElement = element;
-    };
+      var canvasService = {
+      };
 
-    this.getCanvasHtmlElement = function() {
-      return canvasHtmlElement;
-    };
+      canvasService.setCanvasHtmlElement = function(element) {
+        canvasService.canvasHtmlElement = element;
+      };
 
-    this.dragover = function(scope, callback) {
+      canvasService.getCanvasHtmlElement = function() {
+        return canvasService.canvasHtmlElement;
+      };
+
+      canvasService.dragover = function(scope, callback) {
         var handler = $rootScope.$on('notifying-dragover-event', callback);
         scope.$on('$destroy', handler);
-    };
-    
-    this._notifyDragover = function(event) {
-      $rootScope.$emit('notifying-dragover-event', event);
+      };
+
+      canvasService._notifyDragover = function(event) {
+        $rootScope.$emit('notifying-dragover-event', event);
+      };
+
+      canvasService.drop = function(scope, callback) {
+        var handler = $rootScope.$on('notifying-drop-event', callback);
+        scope.$on('$destroy', handler);
+      };
+
+      canvasService._notifyDrop = function(event) {
+        $rootScope.$emit('notifying-drop-event', event);
+      };
+
+      return canvasService;
     };
 
-    this.drop = function(scope, callback) {
-      var handler = $rootScope.$on('notifying-drop-event', callback);
-      scope.$on('$destroy', handler);
-    };
 
-    this._notifyDrop = function(event) {
-      $rootScope.$emit('notifying-drop-event', event);
-    };
   }
-  CanvasService.$inject = ["$rootScope"];
+  CanvasFactory.$inject = ["$rootScope"];
 
   angular.module('flowchart')
-      .service('FlowchartCanvasService', CanvasService);
+      .service('FlowchartCanvasFactory', CanvasFactory);
 
 }());
 
@@ -1290,7 +1420,7 @@ if (!Function.prototype.bind) {
 
   'use strict';
 
-  function fcCanvas(flowchartConstants, FlowchartCanvasService) {
+  function fcCanvas(flowchartConstants) {
     return {
       restrict: 'E',
       templateUrl: "flowchart/canvas.html",
@@ -1303,7 +1433,8 @@ if (!Function.prototype.bind) {
         automaticResize: '=?',
         dragAnimation: '=?',
         nodeWidth: '=?',
-        nodeHeight: '=?'
+        nodeHeight: '=?',
+        dropTargetId: '=?'
       },
       controller: 'canvasController',
       link: function(scope, element) {
@@ -1319,7 +1450,7 @@ if (!Function.prototype.bind) {
             element.css('height', Math.max(maxY, element.prop('offsetHeight')) + 'px');
           }
         }
-        if (scope.edgeStyle !== flowchartConstants.curvedStyle && scope.edgeStyle !== flowchartConstants.lineStyle) {
+        if (!scope.dropTargetId && scope.edgeStyle !== flowchartConstants.curvedStyle && scope.edgeStyle !== flowchartConstants.lineStyle) {
           throw new Error('edgeStyle not supported.');
         }
         scope.nodeHeight = scope.nodeHeight || 200;
@@ -1333,13 +1464,16 @@ if (!Function.prototype.bind) {
 
         scope.$watch('model', adjustCanvasSize);
 
-        FlowchartCanvasService.setCanvasHtmlElement(element[0]);
+        scope.canvasservice.setCanvasHtmlElement(element[0]);
         scope.modelservice.setCanvasHtmlElement(element[0]);
         scope.modelservice.setSvgHtmlElement(element[0].querySelector('svg'));
+        if (scope.dropTargetId) {
+          scope.modelservice.setDropTargetId(scope.dropTargetId);
+        }
       }
     };
   }
-  fcCanvas.$inject = ["flowchartConstants", "FlowchartCanvasService"];
+  fcCanvas.$inject = ["flowchartConstants"];
 
   angular
     .module('flowchart')
@@ -1352,7 +1486,7 @@ if (!Function.prototype.bind) {
 
   'use strict';
 
-  function canvasController($scope, Mouseoverfactory, Nodedraggingfactory, Modelfactory, Edgedraggingfactory, Edgedrawingservice, FlowchartCanvasService) {
+  function canvasController($scope, Mouseoverfactory, Nodedraggingfactory, FlowchartCanvasFactory, Modelfactory, Edgedraggingfactory, Edgedrawingservice) {
 
     $scope.dragAnimation = angular.isDefined($scope.dragAnimation) ? $scope.dragAnimation : 'repaint';
 
@@ -1364,7 +1498,9 @@ if (!Function.prototype.bind) {
       }
     });
 
-    $scope.modelservice = Modelfactory($scope.model, $scope.selectedObjects, $scope.userCallbacks.createEdge, $scope.userCallbacks.edgeAdded || angular.noop, $scope.userCallbacks.nodeRemoved || angular.noop,  $scope.userCallbacks.edgeRemoved || angular.noop);
+    $scope.canvasservice = FlowchartCanvasFactory();
+
+    $scope.modelservice = Modelfactory($scope.model, $scope.selectedObjects, $scope.userCallbacks.dropNode, $scope.userCallbacks.createEdge, $scope.userCallbacks.edgeAdded || angular.noop, $scope.userCallbacks.nodeRemoved || angular.noop,  $scope.userCallbacks.edgeRemoved || angular.noop);
 
     $scope.nodeDragging = {};
     var nodedraggingservice = Nodedraggingfactory($scope.modelservice, $scope.nodeDragging, $scope.$apply.bind($scope), $scope.automaticResize, $scope.dragAnimation);
@@ -1382,13 +1518,13 @@ if (!Function.prototype.bind) {
 
     $scope.drop = function(event) {
       nodedraggingservice.drop(event);
-      FlowchartCanvasService._notifyDrop(event);
+      $scope.canvasservice._notifyDrop(event);
     };
 
     $scope.dragover = function(event) {
       nodedraggingservice.dragover(event);
       edgedraggingservice.dragover(event);
-      FlowchartCanvasService._notifyDragover(event);
+      $scope.canvasservice._notifyDragover(event);
     };
 
     $scope.edgeClick = function(event, edge) {
@@ -1431,7 +1567,7 @@ if (!Function.prototype.bind) {
     $scope.getEdgeCenter = Edgedrawingservice.getEdgeCenter;
 
   }
-  canvasController.$inject = ["$scope", "Mouseoverfactory", "Nodedraggingfactory", "Modelfactory", "Edgedraggingfactory", "Edgedrawingservice", "FlowchartCanvasService"];
+  canvasController.$inject = ["$scope", "Mouseoverfactory", "Nodedraggingfactory", "FlowchartCanvasFactory", "Modelfactory", "Edgedraggingfactory", "Edgedrawingservice"];
 
   angular
     .module('flowchart')
@@ -1534,7 +1670,7 @@ module.run(['$templateCache', function($templateCache) {
     '      </div>\n' +
     '    </div>\n' +
     '  </div>\n' +
-    '  <div class="fc-nodedelete" ng-click="modelservice.nodes.delete(node)">\n' +
+    '  <div ng-if="modelservice.isEditable()" class="fc-nodedelete" ng-click="modelservice.nodes.delete(node)">\n' +
     '    &times;\n' +
     '  </div>\n' +
     '</div>\n' +

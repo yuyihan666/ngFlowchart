@@ -18,7 +18,7 @@
       </div>
     </div>
   </div>
-  <div class="fc-nodedelete" ng-click="modelservice.nodes.delete(node)">
+  <div ng-if="modelservice.isEditable()" class="fc-nodedelete" ng-click="modelservice.nodes.delete(node)">
     &times;
   </div>
 </div>

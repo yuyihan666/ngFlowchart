@@ -2,7 +2,7 @@
 
   'use strict';
 
-  function canvasController($scope, Mouseoverfactory, Nodedraggingfactory, Modelfactory, Edgedraggingfactory, Edgedrawingservice, FlowchartCanvasService) {
+  function canvasController($scope, Mouseoverfactory, Nodedraggingfactory, FlowchartCanvasFactory, Modelfactory, Edgedraggingfactory, Edgedrawingservice) {
 
     $scope.dragAnimation = angular.isDefined($scope.dragAnimation) ? $scope.dragAnimation : 'repaint';
 
@@ -14,7 +14,9 @@
       }
     });
 
-    $scope.modelservice = Modelfactory($scope.model, $scope.selectedObjects, $scope.userCallbacks.createEdge, $scope.userCallbacks.edgeAdded || angular.noop, $scope.userCallbacks.nodeRemoved || angular.noop,  $scope.userCallbacks.edgeRemoved || angular.noop);
+    $scope.canvasservice = FlowchartCanvasFactory();
+
+    $scope.modelservice = Modelfactory($scope.model, $scope.selectedObjects, $scope.userCallbacks.dropNode, $scope.userCallbacks.createEdge, $scope.userCallbacks.edgeAdded || angular.noop, $scope.userCallbacks.nodeRemoved || angular.noop,  $scope.userCallbacks.edgeRemoved || angular.noop);
 
     $scope.nodeDragging = {};
     var nodedraggingservice = Nodedraggingfactory($scope.modelservice, $scope.nodeDragging, $scope.$apply.bind($scope), $scope.automaticResize, $scope.dragAnimation);
@@ -32,13 +34,13 @@
 
     $scope.drop = function(event) {
       nodedraggingservice.drop(event);
-      FlowchartCanvasService._notifyDrop(event);
+      $scope.canvasservice._notifyDrop(event);
     };
 
     $scope.dragover = function(event) {
       nodedraggingservice.dragover(event);
       edgedraggingservice.dragover(event);
-      FlowchartCanvasService._notifyDragover(event);
+      $scope.canvasservice._notifyDragover(event);
     };
 
     $scope.edgeClick = function(event, edge) {

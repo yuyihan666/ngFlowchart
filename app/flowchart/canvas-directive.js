@@ -2,7 +2,7 @@
 
   'use strict';
 
-  function fcCanvas(flowchartConstants, FlowchartCanvasService) {
+  function fcCanvas(flowchartConstants) {
     return {
       restrict: 'E',
       templateUrl: "flowchart/canvas.html",
@@ -15,7 +15,8 @@
         automaticResize: '=?',
         dragAnimation: '=?',
         nodeWidth: '=?',
-        nodeHeight: '=?'
+        nodeHeight: '=?',
+        dropTargetId: '=?'
       },
       controller: 'canvasController',
       link: function(scope, element) {
@@ -31,7 +32,7 @@
             element.css('height', Math.max(maxY, element.prop('offsetHeight')) + 'px');
           }
         }
-        if (scope.edgeStyle !== flowchartConstants.curvedStyle && scope.edgeStyle !== flowchartConstants.lineStyle) {
+        if (!scope.dropTargetId && scope.edgeStyle !== flowchartConstants.curvedStyle && scope.edgeStyle !== flowchartConstants.lineStyle) {
           throw new Error('edgeStyle not supported.');
         }
         scope.nodeHeight = scope.nodeHeight || 200;
@@ -45,9 +46,12 @@
 
         scope.$watch('model', adjustCanvasSize);
 
-        FlowchartCanvasService.setCanvasHtmlElement(element[0]);
+        scope.canvasservice.setCanvasHtmlElement(element[0]);
         scope.modelservice.setCanvasHtmlElement(element[0]);
         scope.modelservice.setSvgHtmlElement(element[0].querySelector('svg'));
+        if (scope.dropTargetId) {
+          scope.modelservice.setDropTargetId(scope.dropTargetId);
+        }
       }
     };
   }

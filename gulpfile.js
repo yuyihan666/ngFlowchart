@@ -23,7 +23,9 @@ var jsFilter = {
 
 gulp.task('vendorScripts', function() {
   safeReload++;
-  var ret = gulp.src(bowerFiles(jsFilter))
+  var vendorFiles = ['app/bower_components/jquery/dist/jquery.js'];
+  vendorFiles = vendorFiles.concat(bowerFiles(jsFilter));
+  var ret = gulp.src(vendorFiles)
     .pipe(concat('vendor.js'))
     .pipe(gulp.dest('dist/'));
   safeReload--;

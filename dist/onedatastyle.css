@@ -1,11 +1,40 @@
 body {
   font-family: sans-serif;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100vh;
+}
+
+.fc-container {
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+}
+
+.fc-left-pane {
+  flex: 0.25;
+  overflow: auto;
+}
+
+.fc-left-pane .fc-canvas {
+  //height: 100% !important;
+}
+
+.fc-divider {
+  flex: 0.01;
+}
+
+.fc-right-pane {
+  flex: 0.74;
+  overflow: auto;
 }
 
 .button-overlay {
   position: absolute;
   top: 40px;
-  left: 40px;
+  //left: 40px;
   z-index: 10;
 }
 
@@ -50,14 +79,14 @@ body {
   font-size: 16px;
 }
 
-.fc-node.fc-hover {
-  -webkit-filter: brightness(70%);
-  filter: brightness(70%);;
+.fc-node.fc-selected .innerNode {
+  background-color: #984c26;
+  color: #999999;
 }
 
-.fc-node.fc-selected {
-  -webkit-filter: brightness(70%);
-  filter: brightness(70%);
+.fc-node.fc-hover .innerNode {
+  background-color: #984c26;
+  color: #999999;
 }
 
 .fc-node.fc-dragging {

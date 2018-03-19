@@ -16,6 +16,31 @@ angular.module('app', ['flowchart'])
     var nextConnectorID = 20;
     var ctrlDown = false;
 
+    var nodeTypesModel = {
+      nodes: [],
+      edges: []
+    };
+
+    for (var i=0;i<10;i++) {
+      var node = {
+        name: "type"+i,
+        id: (i+1),
+        x: 50,
+        y: 100*(i+1),
+        connectors: [
+          {
+            type: flowchartConstants.leftConnectorType,
+            id: i*2+1
+          },
+          {
+            type: flowchartConstants.rightConnectorType,
+            id: i*2+2
+          }
+        ]
+      };
+      nodeTypesModel.nodes.push(node);
+    }
+
     var model = {
       nodes: [
         {
@@ -110,9 +135,11 @@ angular.module('app', ['flowchart'])
   };
 
 $scope.flowchartselected = [];
+$scope.nodeTypesFlowchartselected = [];
 var modelservice = Modelfactory(model, $scope.flowchartselected);
 
 $scope.model = model;
+$scope.nodeTypesModel = nodeTypesModel;
 $scope.modelservice = modelservice;
 
 $scope.keyDown = function (evt) {
@@ -226,6 +253,24 @@ $scope.callbacks = {
       deferred.resolve({label: label});
     }
     return deferred.promise;
+  },
+  dropNode: function (node) {
+    var name = prompt("Enter a node name:", node.name);
+    if (name) {
+      node.name = name;
+      node.id = nextNodeID++;
+      node.connectors = [
+        {
+          id: nextConnectorID++,
+          type: flowchartConstants.leftConnectorType
+        },
+        {
+          id: nextConnectorID++,
+          type: flowchartConstants.rightConnectorType
+        }
+      ]
+      model.nodes.push(node);
+    }
   },
   edgeAdded: function (edge) {
     console.log("edge added");
