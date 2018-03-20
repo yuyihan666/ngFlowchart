@@ -120,7 +120,6 @@
 
         drop: function(event) {
           if (modelservice.isDropSource()) {
-            event.originalEvent.dataTransfer.clearData();
             event.preventDefault();
             return false;
           }
@@ -134,7 +133,6 @@
             if (dropNodeInfo && dropNodeInfo.dropTargetId) {
               if (modelservice.getCanvasHtmlElement().id &&
                 modelservice.getCanvasHtmlElement().id == dropNodeInfo.dropTargetId) {
-                event.originalEvent.dataTransfer.clearData();
                 dropNode = dropNodeInfo.node;
                 var offset = angular.element(modelservice.getCanvasHtmlElement()).offset();
                 var x = Math.round(event.clientX - offset.left);
@@ -212,7 +210,6 @@
               nodeDropScope.dropElement = null;
             }
             if (modelservice.isDropSource()) {
-              event.originalEvent.dataTransfer.clearData();
               return;
             }
             if (nodeDraggingScope.shadowElement) {
