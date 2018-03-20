@@ -242,11 +242,12 @@
           Modelvalidation.validateConnector(destConnector);
           var sourceNode = modelservice.nodes.getNodeByConnectorId(sourceConnector.id);
           var destNode = modelservice.nodes.getNodeByConnectorId(destConnector.id);
-          modelservice.createEdge(event, sourceNode, destNode).then(
+          var edge = {};
+          edge.source = sourceConnector.id;
+          edge.destination = destConnector.id;
+          Modelvalidation.validateEdges(model.edges.concat([edge]), model.nodes);
+          modelservice.createEdge(event, edge).then(
             function (edge) {
-              edge.source = sourceConnector.id;
-              edge.destination = destConnector.id;
-              Modelvalidation.validateEdges(model.edges.concat([edge]), model.nodes);
               model.edges.push(edge);
               modelservice.edgeAddedCallback(edge);
             }

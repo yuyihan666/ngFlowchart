@@ -244,17 +244,18 @@ $scope.callbacks = {
   isValidEdge: function (source, destination) {
     return source.type === flowchartConstants.rightConnectorType && destination.type === flowchartConstants.leftConnectorType;
   },
-  createEdge: function (sourceNode, destNode) {
+  createEdge: function (event, edge) {
     var deferred = $q.defer();
     var label = prompt("Enter a link label:", "New label");
     if (!label) {
       deferred.reject();
     } else {
-      deferred.resolve({label: label});
+      edge.label = label;
+      deferred.resolve(edge);
     }
     return deferred.promise;
   },
-  dropNode: function (node) {
+  dropNode: function (event, node) {
     var name = prompt("Enter a node name:", node.name);
     if (name) {
       node.name = name;
