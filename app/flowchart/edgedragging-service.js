@@ -237,7 +237,7 @@
             }
 
             if (isValidEdgeCallback(draggedEdgeSource, targetConnector)) {
-              modelservice.edges._addEdge(draggedEdgeSource, targetConnector);
+              modelservice.edges._addEdge(event, draggedEdgeSource, targetConnector);
               event.stopPropagation();
               event.preventDefault();
               return false;

@@ -142,7 +142,7 @@
              }
           }
           if (dropNode) {
-              modelservice.dropNode(dropNode);
+              modelservice.dropNode(event, dropNode);
               event.preventDefault();
               return false;
           } else if (nodeDraggingScope.draggedNode) {

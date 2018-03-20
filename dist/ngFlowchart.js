@@ -250,7 +250,7 @@ if (!Function.prototype.bind) {
              }
           }
           if (dropNode) {
-              modelservice.dropNode(dropNode);
+              modelservice.dropNode(event, dropNode);
               event.preventDefault();
               return false;
           } else if (nodeDraggingScope.draggedNode) {
@@ -873,12 +873,12 @@ if (!Function.prototype.bind) {
           }
         },
 
-        _addEdge: function(sourceConnector, destConnector) {
+        _addEdge: function(event, sourceConnector, destConnector) {
           Modelvalidation.validateConnector(sourceConnector);
           Modelvalidation.validateConnector(destConnector);
           var sourceNode = modelservice.nodes.getNodeByConnectorId(sourceConnector.id);
           var destNode = modelservice.nodes.getNodeByConnectorId(destConnector.id);
-          modelservice.createEdge(sourceNode, destNode).then(
+          modelservice.createEdge(event, sourceNode, destNode).then(
             function (edge) {
               edge.source = sourceConnector.id;
               edge.destination = destConnector.id;
@@ -1308,7 +1308,7 @@ if (!Function.prototype.bind) {
             }
 
             if (isValidEdgeCallback(draggedEdgeSource, targetConnector)) {
-              modelservice.edges._addEdge(draggedEdgeSource, targetConnector);
+              modelservice.edges._addEdge(event, draggedEdgeSource, targetConnector);
               event.stopPropagation();
               event.preventDefault();
               return false;

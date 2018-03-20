@@ -237,12 +237,12 @@
           }
         },
 
-        _addEdge: function(sourceConnector, destConnector) {
+        _addEdge: function(event, sourceConnector, destConnector) {
           Modelvalidation.validateConnector(sourceConnector);
           Modelvalidation.validateConnector(destConnector);
           var sourceNode = modelservice.nodes.getNodeByConnectorId(sourceConnector.id);
           var destNode = modelservice.nodes.getNodeByConnectorId(destConnector.id);
-          modelservice.createEdge(sourceNode, destNode).then(
+          modelservice.createEdge(event, sourceNode, destNode).then(
             function (edge) {
               edge.source = sourceConnector.id;
               edge.destination = destConnector.id;
