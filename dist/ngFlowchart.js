@@ -1500,6 +1500,8 @@ if (!Function.prototype.bind) {
       }
     });
 
+    $scope.arrowDefId = 'arrow-' + Math.random();
+
     $scope.canvasservice = FlowchartCanvasFactory();
 
     $scope.modelservice = Modelfactory($scope.model, $scope.selectedObjects, $scope.userCallbacks.dropNode, $scope.userCallbacks.createEdge, $scope.userCallbacks.edgeAdded || angular.noop, $scope.userCallbacks.nodeRemoved || angular.noop,  $scope.userCallbacks.edgeRemoved || angular.noop);
@@ -1590,7 +1592,7 @@ module.run(['$templateCache', function($templateCache) {
     '<div ng-click="canvasClick($event)">\n' +
     '  <svg>\n' +
     '    <defs>\n' +
-    '      <marker id="arrow" markerWidth="5" markerHeight="5" viewBox="-6 -6 12 12" refX="10" refY="0" markerUnits="strokeWidth" orient="auto">\n' +
+    '      <marker id="{{arrowDefId}}" markerWidth="5" markerHeight="5" viewBox="-6 -6 12 12" refX="10" refY="0" markerUnits="strokeWidth" orient="auto">\n' +
     '        <polygon points="-2,0 -5,5 5,0 -5,-5" fill="gray" stroke="black" stroke-width="1px"/>\n' +
     '      </marker>\n' +
     '    </defs>\n' +
@@ -1603,7 +1605,7 @@ module.run(['$templateCache', function($templateCache) {
     '        ng-mouseleave="edgeMouseLeave($event, edge)"\n' +
     '        ng-attr-class="{{(modelservice.edges.isSelected(edge) && flowchartConstants.selectedClass + \' \' + flowchartConstants.edgeClass) || edge == mouseOver.edge && flowchartConstants.hoverClass + \' \' + flowchartConstants.edgeClass || edge.active && flowchartConstants.activeClass + \' \' + flowchartConstants.edgeClass || flowchartConstants.edgeClass}}"\n' +
     '        ng-attr-d="{{getEdgeDAttribute(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge), edgeStyle)}}"\n' +
-    '        marker-end="url(#arrow)"></path>\n' +
+    '        marker-end="url(#{{arrowDefId}})"></path>\n' +
     '      <!--text\n' +
     '        text-anchor="middle"\n' +
     '        ng-attr-x="{{getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).x}}"\n' +

@@ -14,6 +14,8 @@
       }
     });
 
+    $scope.arrowDefId = 'arrow-' + Math.random();
+
     $scope.canvasservice = FlowchartCanvasFactory();
 
     $scope.modelservice = Modelfactory($scope.model, $scope.selectedObjects, $scope.userCallbacks.dropNode, $scope.userCallbacks.createEdge, $scope.userCallbacks.edgeAdded || angular.noop, $scope.userCallbacks.nodeRemoved || angular.noop,  $scope.userCallbacks.edgeRemoved || angular.noop);

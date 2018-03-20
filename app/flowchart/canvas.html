@@ -1,7 +1,7 @@
 <div ng-click="canvasClick($event)">
   <svg>
     <defs>
-      <marker id="arrow" markerWidth="5" markerHeight="5" viewBox="-6 -6 12 12" refX="10" refY="0" markerUnits="strokeWidth" orient="auto">
+      <marker id="{{arrowDefId}}" markerWidth="5" markerHeight="5" viewBox="-6 -6 12 12" refX="10" refY="0" markerUnits="strokeWidth" orient="auto">
         <polygon points="-2,0 -5,5 5,0 -5,-5" fill="gray" stroke="black" stroke-width="1px"/>
       </marker>
     </defs>
@@ -14,7 +14,7 @@
         ng-mouseleave="edgeMouseLeave($event, edge)"
         ng-attr-class="{{(modelservice.edges.isSelected(edge) && flowchartConstants.selectedClass + ' ' + flowchartConstants.edgeClass) || edge == mouseOver.edge && flowchartConstants.hoverClass + ' ' + flowchartConstants.edgeClass || edge.active && flowchartConstants.activeClass + ' ' + flowchartConstants.edgeClass || flowchartConstants.edgeClass}}"
         ng-attr-d="{{getEdgeDAttribute(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge), edgeStyle)}}"
-        marker-end="url(#arrow)"></path>
+        marker-end="url(#{{arrowDefId}})"></path>
       <!--text
         text-anchor="middle"
         ng-attr-x="{{getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).x}}"
