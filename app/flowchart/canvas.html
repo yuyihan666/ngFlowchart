@@ -42,12 +42,12 @@
            callbacks="callbacks"
            user-node-callbacks="userNodeCallbacks"
            ng-repeat="node in model.nodes"></fc-node>
-  <div class="fc-edge-label"
+  <div class="fc-edge-label" ng-if="edge.label"
        ng-style="{ top: (getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).y-10)+'px',
                    left: (getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).x)+'px'}"
        ng-repeat="edge in model.edges">
     <div class="fc-edge-label-text">
-      <span style="border: solid #ff3d00; border-radius: 10px; color: #ff3d00; background-color: #fff; padding-left: 5px; padding-right: 5px; padding-top: 3px; padding-bottom: 3px;">{{edge.label}}</span>
+      <span>{{edge.label}}</span>
     </div>
   </div>
 </div>

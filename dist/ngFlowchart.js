@@ -151,6 +151,9 @@ if (!Function.prototype.bind) {
       return {
         dragstart: function(node) {
           return function(event) {
+            if (node.readonly) {
+              return;
+            }
             var element = angular.element(event.target);
             var offsetX = parseInt(element.css('left')) - event.clientX;
             var offsetY = parseInt(element.css('top')) - event.clientY;
@@ -395,13 +398,14 @@ if (!Function.prototype.bind) {
       },
       link: function(scope, element) {
         scope.flowchartConstants = flowchartConstants;
-        element.attr('draggable', 'true');
-
-        element.on('dragstart', scope.fcCallbacks.nodeDragstart(scope.node));
-        element.on('dragend', scope.fcCallbacks.nodeDragend);
-        element.on('click', scope.fcCallbacks.nodeClicked(scope.node));
-        element.on('mouseover', scope.fcCallbacks.nodeMouseOver(scope.node));
-        element.on('mouseout', scope.fcCallbacks.nodeMouseOut(scope.node));
+        if (!scope.node.readonly) {
+          element.attr('draggable', 'true');
+          element.on('dragstart', scope.fcCallbacks.nodeDragstart(scope.node));
+          element.on('dragend', scope.fcCallbacks.nodeDragend);
+          element.on('click', scope.fcCallbacks.nodeClicked(scope.node));
+          element.on('mouseover', scope.fcCallbacks.nodeMouseOver(scope.node));
+          element.on('mouseout', scope.fcCallbacks.nodeMouseOut(scope.node));
+        }
 
         element.addClass(flowchartConstants.nodeClass);
 
@@ -1630,12 +1634,12 @@ module.run(['$templateCache', function($templateCache) {
     '           callbacks="callbacks"\n' +
     '           user-node-callbacks="userNodeCallbacks"\n' +
     '           ng-repeat="node in model.nodes"></fc-node>\n' +
-    '  <div class="fc-edge-label"\n' +
+    '  <div class="fc-edge-label" ng-if="edge.label"\n' +
     '       ng-style="{ top: (getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).y-10)+\'px\',\n' +
     '                   left: (getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).x)+\'px\'}"\n' +
     '       ng-repeat="edge in model.edges">\n' +
     '    <div class="fc-edge-label-text">\n' +
-    '      <span style="border: solid #ff3d00; border-radius: 10px; color: #ff3d00; background-color: #fff; padding-left: 5px; padding-right: 5px; padding-top: 3px; padding-bottom: 3px;">{{edge.label}}</span>\n' +
+    '      <span>{{edge.label}}</span>\n' +
     '    </div>\n' +
     '  </div>\n' +
     '</div>\n' +
@@ -1671,7 +1675,7 @@ module.run(['$templateCache', function($templateCache) {
     '      </div>\n' +
     '    </div>\n' +
     '  </div>\n' +
-    '  <div ng-if="modelservice.isEditable()" class="fc-nodedelete" ng-click="modelservice.nodes.delete(node)">\n' +
+    '  <div ng-if="modelservice.isEditable() && !node.readonly" class="fc-nodedelete" ng-click="modelservice.nodes.delete(node)">\n' +
     '    &times;\n' +
     '  </div>\n' +
     '</div>\n' +

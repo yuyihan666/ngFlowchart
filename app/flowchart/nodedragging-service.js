@@ -43,6 +43,9 @@
       return {
         dragstart: function(node) {
           return function(event) {
+            if (node.readonly) {
+              return;
+            }
             var element = angular.element(event.target);
             var offsetX = parseInt(element.css('left')) - event.clientX;
             var offsetY = parseInt(element.css('top')) - event.clientY;

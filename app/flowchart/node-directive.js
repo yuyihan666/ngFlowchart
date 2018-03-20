@@ -21,13 +21,14 @@
       },
       link: function(scope, element) {
         scope.flowchartConstants = flowchartConstants;
-        element.attr('draggable', 'true');
-
-        element.on('dragstart', scope.fcCallbacks.nodeDragstart(scope.node));
-        element.on('dragend', scope.fcCallbacks.nodeDragend);
-        element.on('click', scope.fcCallbacks.nodeClicked(scope.node));
-        element.on('mouseover', scope.fcCallbacks.nodeMouseOver(scope.node));
-        element.on('mouseout', scope.fcCallbacks.nodeMouseOut(scope.node));
+        if (!scope.node.readonly) {
+          element.attr('draggable', 'true');
+          element.on('dragstart', scope.fcCallbacks.nodeDragstart(scope.node));
+          element.on('dragend', scope.fcCallbacks.nodeDragend);
+          element.on('click', scope.fcCallbacks.nodeClicked(scope.node));
+          element.on('mouseover', scope.fcCallbacks.nodeMouseOver(scope.node));
+          element.on('mouseout', scope.fcCallbacks.nodeMouseOut(scope.node));
+        }
 
         element.addClass(flowchartConstants.nodeClass);
 

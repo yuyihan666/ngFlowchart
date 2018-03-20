@@ -45,6 +45,7 @@ angular.module('app', ['flowchart'])
       nodes: [
         {
           name: "ngFlowchart",
+          readonly: true,
           id: 2,
           x: 400,
           y: 100,
