@@ -16,7 +16,8 @@
         dragAnimation: '=?',
         nodeWidth: '=?',
         nodeHeight: '=?',
-        dropTargetId: '=?'
+        dropTargetId: '=?',
+        control: '=?'
       },
       controller: 'canvasController',
       link: function(scope, element) {
@@ -45,6 +46,9 @@
         element.on('drop', scope.drop);
 
         scope.$watch('model', adjustCanvasSize);
+
+        scope.internalControl = scope.control || {};
+        scope.internalControl.adjustCanvasSize = adjustCanvasSize;
 
         scope.canvasservice.setCanvasHtmlElement(element[0]);
         scope.modelservice.setCanvasHtmlElement(element[0]);
