@@ -110,6 +110,80 @@ if (!Function.prototype.bind) {
 
   'use strict';
 
+  function Rectangleselectfactory() {
+
+    return function(modelservice) {
+
+      var rectangleSelectService = {
+      };
+
+      var selectRect = {
+        x1: 0,
+        x2: 0,
+        y1: 0,
+        y2: 0
+      };
+
+      function updateSelectRect() {
+        var x3 = Math.min(selectRect.x1,selectRect.x2);
+        var x4 = Math.max(selectRect.x1,selectRect.x2);
+        var y3 = Math.min(selectRect.y1,selectRect.y2);
+        var y4 = Math.max(selectRect.y1,selectRect.y2);
+        rectangleSelectService.selectElement.style.left = x3 + 'px';
+        rectangleSelectService.selectElement.style.top = y3 + 'px';
+        rectangleSelectService.selectElement.style.width = x4 - x3 + 'px';
+        rectangleSelectService.selectElement.style.height = y4 - y3 + 'px';
+      }
+
+      function selectObjects(rectBox) {
+        modelservice.selectAllInRect(rectBox);
+      }
+
+      rectangleSelectService.setRectangleSelectHtmlElement = function(element) {
+        rectangleSelectService.selectElement = element;
+      };
+
+      rectangleSelectService.mousedown = function(e) {
+        if (modelservice.isEditable() && !e.ctrlKey) {
+          rectangleSelectService.selectElement.hidden = 0;
+          var offset = angular.element(modelservice.getCanvasHtmlElement()).offset();
+          selectRect.x1 = Math.round(e.clientX - offset.left);
+          selectRect.y1 = Math.round(e.clientY - offset.top);
+          updateSelectRect();
+        }
+      };
+      rectangleSelectService.mousemove = function(e) {
+        if (modelservice.isEditable() && !e.ctrlKey) {
+          var offset = angular.element(modelservice.getCanvasHtmlElement()).offset();
+          selectRect.x2 = Math.round(e.clientX - offset.left);
+          selectRect.y2 = Math.round(e.clientY - offset.top);
+          updateSelectRect();
+        }
+      };
+      rectangleSelectService.mouseup = function (e) {
+        if (modelservice.isEditable() && !e.ctrlKey) {
+          var rectBox = rectangleSelectService.selectElement.getBoundingClientRect();
+          rectBox.parentOffset = angular.element(modelservice.getCanvasHtmlElement()).offset();
+          rectangleSelectService.selectElement.hidden = 1;
+          selectObjects(rectBox);
+        }
+      };
+
+      return rectangleSelectService;
+    }
+
+  }
+
+  angular
+    .module('flowchart')
+    .factory('Rectangleselectfactory', Rectangleselectfactory);
+
+}());
+
+(function() {
+
+  'use strict';
+
   function Nodedraggingfactory(flowchartConstants) {
 
     var nodeDropScope = {};
@@ -395,6 +469,7 @@ if (!Function.prototype.bind) {
       },
       link: function(scope, element) {
         scope.flowchartConstants = flowchartConstants;
+        element.on('mousedown', function(e){e.stopPropagation();});
         if (!scope.node.readonly) {
           element.attr('draggable', 'true');
           element.on('dragstart', scope.fcCallbacks.nodeDragstart(scope.node));
@@ -423,6 +498,8 @@ if (!Function.prototype.bind) {
         scope.$watch('draggedNode', function(value) {
           myToggleClass(flowchartConstants.draggingClass, value===scope.node);
         });
+
+        scope.modelservice.nodes.setHtmlElement(scope.node.id, element[0]);
       }
     };
   }
@@ -648,6 +725,7 @@ if (!Function.prototype.bind) {
       };
 
       modelservice.connectorsHtmlElements = {};
+      modelservice.nodesHtmlElements = {};
       modelservice.canvasHtmlElement = null;
       modelservice.svgHtmlElement = null;
 
@@ -802,6 +880,14 @@ if (!Function.prototype.bind) {
           }
         },
 
+        setHtmlElement: function(nodeId, element) {
+          modelservice.nodesHtmlElements[nodeId] = element;
+        },
+
+        getHtmlElement: function(nodeId) {
+          return modelservice.nodesHtmlElements[nodeId];
+        },
+
         _addNode: function(node) {
           try {
             model.nodes.push(node);
@@ -877,8 +963,6 @@ if (!Function.prototype.bind) {
         _addEdge: function(event, sourceConnector, destConnector) {
           Modelvalidation.validateConnector(sourceConnector);
           Modelvalidation.validateConnector(destConnector);
-          var sourceNode = modelservice.nodes.getNodeByConnectorId(sourceConnector.id);
-          var destNode = modelservice.nodes.getNodeByConnectorId(destConnector.id);
           var edge = {};
           edge.source = sourceConnector.id;
           edge.destination = destConnector.id;
@@ -890,6 +974,42 @@ if (!Function.prototype.bind) {
             }
           );
         }
+      };
+
+      function inRectBox(x, y, rectBox) {
+        return x >= rectBox.left && x <= rectBox.right &&
+            y >= rectBox.top && y <= rectBox.bottom;
+      }
+
+      modelservice.selectAllInRect = function(rectBox) {
+        angular.forEach(model.nodes, function(value) {
+          var element = modelservice.nodes.getHtmlElement(value.id);
+          var nodeElementBox = element.getBoundingClientRect();
+          if (!value.readonly) {
+            var x = nodeElementBox.left + nodeElementBox.width/2;
+            var y = nodeElementBox.top + nodeElementBox.height/2;
+            if (inRectBox(x, y, rectBox)) {
+              modelservice.nodes.select(value);
+            } else {
+              if (modelservice.nodes.isSelected(value)) {
+                modelservice.nodes.deselect(value);
+              }
+            }
+          }
+        });
+        angular.forEach(model.edges, function(value) {
+          var start = modelservice.edges.sourceCoord(value);
+          var end = modelservice.edges.destCoord(value);
+          var x = (start.x + end.x)/2 + rectBox.parentOffset.left;
+          var y = (start.y + end.y)/2 + rectBox.parentOffset.top;
+          if (inRectBox(x, y, rectBox)) {
+            modelservice.edges.select(value);
+          } else {
+            if (modelservice.edges.isSelected(value)) {
+              modelservice.edges.deselect(value);
+            }
+          }
+        });
       };
 
       modelservice.selectAll = function() {
@@ -1464,6 +1584,9 @@ if (!Function.prototype.bind) {
         element.addClass(flowchartConstants.canvasClass);
         element.on('dragover', scope.dragover);
         element.on('drop', scope.drop);
+        element.on('mousedown', scope.mousedown);
+        element.on('mousemove', scope.mousemove);
+        element.on('mouseup', scope.mouseup);
 
         scope.$watch('model', adjustCanvasSize);
 
@@ -1473,6 +1596,7 @@ if (!Function.prototype.bind) {
         scope.canvasservice.setCanvasHtmlElement(element[0]);
         scope.modelservice.setCanvasHtmlElement(element[0]);
         scope.modelservice.setSvgHtmlElement(element[0].querySelector('svg'));
+        scope.rectangleselectservice.setRectangleSelectHtmlElement(element[0].querySelector('#select-rectangle'));
         if (scope.dropTargetId) {
           scope.modelservice.setDropTargetId(scope.dropTargetId);
         }
@@ -1492,7 +1616,7 @@ if (!Function.prototype.bind) {
 
   'use strict';
 
-  function canvasController($scope, Mouseoverfactory, Nodedraggingfactory, FlowchartCanvasFactory, Modelfactory, Edgedraggingfactory, Edgedrawingservice) {
+  function canvasController($scope, Mouseoverfactory, Nodedraggingfactory, FlowchartCanvasFactory, Modelfactory, Edgedraggingfactory, Edgedrawingservice, Rectangleselectfactory) {
 
     $scope.dragAnimation = angular.isDefined($scope.dragAnimation) ? $scope.dragAnimation : 'repaint';
 
@@ -1519,10 +1643,14 @@ if (!Function.prototype.bind) {
     $scope.mouseOver = {};
     var mouseoverservice = Mouseoverfactory($scope.mouseOver, $scope.$apply.bind($scope));
 
+    $scope.rectangleselectservice = Rectangleselectfactory($scope.modelservice);
+
     $scope.edgeMouseEnter = mouseoverservice.edgeMouseEnter;
     $scope.edgeMouseLeave = mouseoverservice.edgeMouseLeave;
 
-    $scope.canvasClick = $scope.modelservice.deselectAll;
+    //$scope.canvasClick = function(e) {
+    //  $scope.modelservice.deselectAll();
+    //};
 
     $scope.drop = function(event) {
       nodedraggingservice.drop(event);
@@ -1533,6 +1661,22 @@ if (!Function.prototype.bind) {
       nodedraggingservice.dragover(event);
       edgedraggingservice.dragover(event);
       $scope.canvasservice._notifyDragover(event);
+    };
+
+    $scope.mousedown = function(event) {
+      $scope.rectangleselectservice.mousedown(event);
+    };
+
+    $scope.mousemove = function(event) {
+      $scope.rectangleselectservice.mousemove(event);
+    };
+
+    $scope.mouseup = function(event) {
+      $scope.rectangleselectservice.mouseup(event);
+    };
+
+    $scope.edgeMouseDown = function(event, edge) {
+      event.stopPropagation();
     };
 
     $scope.edgeClick = function(event, edge) {
@@ -1575,7 +1719,7 @@ if (!Function.prototype.bind) {
     $scope.getEdgeCenter = Edgedrawingservice.getEdgeCenter;
 
   }
-  canvasController.$inject = ["$scope", "Mouseoverfactory", "Nodedraggingfactory", "FlowchartCanvasFactory", "Modelfactory", "Edgedraggingfactory", "Edgedrawingservice"];
+  canvasController.$inject = ["$scope", "Mouseoverfactory", "Nodedraggingfactory", "FlowchartCanvasFactory", "Modelfactory", "Edgedraggingfactory", "Edgedrawingservice", "Rectangleselectfactory"];
 
   angular
     .module('flowchart')
@@ -1602,6 +1746,7 @@ module.run(['$templateCache', function($templateCache) {
     '    </defs>\n' +
     '    <g ng-repeat="edge in model.edges">\n' +
     '      <path\n' +
+    '        ng-mousedown="edgeMouseDown($event, edge)"\n' +
     '        ng-click="edgeClick($event, edge)"\n' +
     '        ng-dblclick="edgeDoubleClick($event, edge)"\n' +
     '        ng-mouseover="edgeMouseOver($event, edge)"\n' +
@@ -1645,6 +1790,7 @@ module.run(['$templateCache', function($templateCache) {
     '      <span>{{edge.label}}</span>\n' +
     '    </div>\n' +
     '  </div>\n' +
+    '  <div id="select-rectangle" class="fc-select-rectangle" hidden></div>\n' +
     '</div>\n' +
     '');
 }]);

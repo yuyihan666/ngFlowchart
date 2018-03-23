@@ -11,6 +11,7 @@
       };
 
       modelservice.connectorsHtmlElements = {};
+      modelservice.nodesHtmlElements = {};
       modelservice.canvasHtmlElement = null;
       modelservice.svgHtmlElement = null;
 
@@ -165,6 +166,14 @@
           }
         },
 
+        setHtmlElement: function(nodeId, element) {
+          modelservice.nodesHtmlElements[nodeId] = element;
+        },
+
+        getHtmlElement: function(nodeId) {
+          return modelservice.nodesHtmlElements[nodeId];
+        },
+
         _addNode: function(node) {
           try {
             model.nodes.push(node);
@@ -240,8 +249,6 @@
         _addEdge: function(event, sourceConnector, destConnector) {
           Modelvalidation.validateConnector(sourceConnector);
           Modelvalidation.validateConnector(destConnector);
-          var sourceNode = modelservice.nodes.getNodeByConnectorId(sourceConnector.id);
-          var destNode = modelservice.nodes.getNodeByConnectorId(destConnector.id);
           var edge = {};
           edge.source = sourceConnector.id;
           edge.destination = destConnector.id;
@@ -253,6 +260,42 @@
             }
           );
         }
+      };
+
+      function inRectBox(x, y, rectBox) {
+        return x >= rectBox.left && x <= rectBox.right &&
+            y >= rectBox.top && y <= rectBox.bottom;
+      }
+
+      modelservice.selectAllInRect = function(rectBox) {
+        angular.forEach(model.nodes, function(value) {
+          var element = modelservice.nodes.getHtmlElement(value.id);
+          var nodeElementBox = element.getBoundingClientRect();
+          if (!value.readonly) {
+            var x = nodeElementBox.left + nodeElementBox.width/2;
+            var y = nodeElementBox.top + nodeElementBox.height/2;
+            if (inRectBox(x, y, rectBox)) {
+              modelservice.nodes.select(value);
+            } else {
+              if (modelservice.nodes.isSelected(value)) {
+                modelservice.nodes.deselect(value);
+              }
+            }
+          }
+        });
+        angular.forEach(model.edges, function(value) {
+          var start = modelservice.edges.sourceCoord(value);
+          var end = modelservice.edges.destCoord(value);
+          var x = (start.x + end.x)/2 + rectBox.parentOffset.left;
+          var y = (start.y + end.y)/2 + rectBox.parentOffset.top;
+          if (inRectBox(x, y, rectBox)) {
+            modelservice.edges.select(value);
+          } else {
+            if (modelservice.edges.isSelected(value)) {
+              modelservice.edges.deselect(value);
+            }
+          }
+        });
       };
 
       modelservice.selectAll = function() {

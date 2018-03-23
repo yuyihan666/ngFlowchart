@@ -44,6 +44,9 @@
         element.addClass(flowchartConstants.canvasClass);
         element.on('dragover', scope.dragover);
         element.on('drop', scope.drop);
+        element.on('mousedown', scope.mousedown);
+        element.on('mousemove', scope.mousemove);
+        element.on('mouseup', scope.mouseup);
 
         scope.$watch('model', adjustCanvasSize);
 
@@ -53,6 +56,7 @@
         scope.canvasservice.setCanvasHtmlElement(element[0]);
         scope.modelservice.setCanvasHtmlElement(element[0]);
         scope.modelservice.setSvgHtmlElement(element[0].querySelector('svg'));
+        scope.rectangleselectservice.setRectangleSelectHtmlElement(element[0].querySelector('#select-rectangle'));
         if (scope.dropTargetId) {
           scope.modelservice.setDropTargetId(scope.dropTargetId);
         }

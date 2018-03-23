@@ -21,6 +21,7 @@
       },
       link: function(scope, element) {
         scope.flowchartConstants = flowchartConstants;
+        element.on('mousedown', function(e){e.stopPropagation();});
         if (!scope.node.readonly) {
           element.attr('draggable', 'true');
           element.on('dragstart', scope.fcCallbacks.nodeDragstart(scope.node));
@@ -49,6 +50,8 @@
         scope.$watch('draggedNode', function(value) {
           myToggleClass(flowchartConstants.draggingClass, value===scope.node);
         });
+
+        scope.modelservice.nodes.setHtmlElement(scope.node.id, element[0]);
       }
     };
   }

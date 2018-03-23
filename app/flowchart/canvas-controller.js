@@ -2,7 +2,7 @@
 
   'use strict';
 
-  function canvasController($scope, Mouseoverfactory, Nodedraggingfactory, FlowchartCanvasFactory, Modelfactory, Edgedraggingfactory, Edgedrawingservice) {
+  function canvasController($scope, Mouseoverfactory, Nodedraggingfactory, FlowchartCanvasFactory, Modelfactory, Edgedraggingfactory, Edgedrawingservice, Rectangleselectfactory) {
 
     $scope.dragAnimation = angular.isDefined($scope.dragAnimation) ? $scope.dragAnimation : 'repaint';
 
@@ -29,10 +29,14 @@
     $scope.mouseOver = {};
     var mouseoverservice = Mouseoverfactory($scope.mouseOver, $scope.$apply.bind($scope));
 
+    $scope.rectangleselectservice = Rectangleselectfactory($scope.modelservice);
+
     $scope.edgeMouseEnter = mouseoverservice.edgeMouseEnter;
     $scope.edgeMouseLeave = mouseoverservice.edgeMouseLeave;
 
-    $scope.canvasClick = $scope.modelservice.deselectAll;
+    //$scope.canvasClick = function(e) {
+    //  $scope.modelservice.deselectAll();
+    //};
 
     $scope.drop = function(event) {
       nodedraggingservice.drop(event);
@@ -43,6 +47,22 @@
       nodedraggingservice.dragover(event);
       edgedraggingservice.dragover(event);
       $scope.canvasservice._notifyDragover(event);
+    };
+
+    $scope.mousedown = function(event) {
+      $scope.rectangleselectservice.mousedown(event);
+    };
+
+    $scope.mousemove = function(event) {
+      $scope.rectangleselectservice.mousemove(event);
+    };
+
+    $scope.mouseup = function(event) {
+      $scope.rectangleselectservice.mouseup(event);
+    };
+
+    $scope.edgeMouseDown = function(event, edge) {
+      event.stopPropagation();
     };
 
     $scope.edgeClick = function(event, edge) {
