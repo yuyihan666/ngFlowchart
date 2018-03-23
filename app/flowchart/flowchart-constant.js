@@ -17,9 +17,11 @@
   constants.hoverClass = constants.htmlPrefix + '-hover';
   constants.draggingClass = constants.htmlPrefix + '-dragging';
   constants.edgeClass = constants.htmlPrefix + '-edge';
+  constants.edgeLabelClass = constants.htmlPrefix + '-edge-label';
   constants.connectorClass = constants.htmlPrefix + '-connector';
   constants.magnetClass = constants.htmlPrefix + '-magnet';
   constants.nodeClass = constants.htmlPrefix + '-node';
+  constants.nodeOverlayClass = constants.htmlPrefix + '-node-overlay';
   constants.leftConnectorClass = constants.htmlPrefix + '-' + constants.leftConnectorType + 's';
   constants.rightConnectorClass = constants.htmlPrefix + '-' + constants.rightConnectorType + 's';
   constants.canvasResizeThreshold = 200;

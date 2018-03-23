@@ -79,14 +79,24 @@ body {
   font-size: 16px;
 }
 
-.fc-node.fc-selected .innerNode {
-  background-color: #984c26;
-  color: #999999;
+.fc-node .fc-node-overlay {
+  position: absolute;
+  pointer-events: none;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #000;
+  opacity: 0;
 }
 
-.fc-node.fc-hover .innerNode {
-  background-color: #984c26;
-  color: #999999;
+.fc-node.fc-hover .fc-node-overlay {
+  opacity: 0.25;
+  transition: opacity .2s;
+}
+
+.fc-node.fc-selected .fc-node-overlay {
+  opacity: 0.25;
 }
 
 .fc-node.fc-dragging {
@@ -153,6 +163,7 @@ body {
 .fc-edge {
   stroke: gray;
   stroke-width: 4;
+  transition: stroke-width .2s;
   fill: transparent;
 }
 
@@ -160,12 +171,6 @@ body {
   stroke: gray;
   stroke-width: 6;
   fill: transparent;
-}
-
-@keyframes dash {
-  from {
-    stroke-dashoffset: 500;
-  }
 }
 
 .fc-edge.fc-selected {
@@ -215,19 +220,19 @@ body {
 .fc-edge-label {
   position: absolute;
   user-select: none;
-  pointer-events: none;
   opacity: 0.8;
+  transition: transform .2s;
+  transform-origin: bottom left;
+  margin: 0 auto;
 }
 
 .fc-edge-label-text {
   position: absolute;
-  left: 50%;
-  -webkit-transform: translateX(-50%);
-  transform: translateX(-50%);
+  -webkit-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
   white-space: nowrap;
   text-align: center;
   font-size: 16px;
-  top: 5px;
 }
 
 .fc-edge-label-text span {
@@ -235,10 +240,16 @@ body {
   border-radius: 10px;
   color: #ff3d00;
   background-color: #fff;
-  padding-left: 5px;
-  padding-right: 5px;
-  padding-top: 3px;
-  padding-bottom: 3px;
+  padding: 3px 5px;
+}
+
+.fc-edge-label.fc-hover {
+  transform: scale(1.25);
+}
+
+.fc-edge-label.fc-selected .fc-edge-label-text span {
+  border: solid red;
+  color: red;
 }
 
 .fc-select-rectangle {
@@ -246,4 +257,10 @@ body {
   position: absolute;
   background: rgba(20,125,255,0.1);
   z-index: 2;
+}
+
+@keyframes dash {
+  from {
+    stroke-dashoffset: 500;
+  }
 }

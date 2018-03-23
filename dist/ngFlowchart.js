@@ -1127,9 +1127,11 @@ if (!Function.prototype.bind) {
   constants.hoverClass = constants.htmlPrefix + '-hover';
   constants.draggingClass = constants.htmlPrefix + '-dragging';
   constants.edgeClass = constants.htmlPrefix + '-edge';
+  constants.edgeLabelClass = constants.htmlPrefix + '-edge-label';
   constants.connectorClass = constants.htmlPrefix + '-connector';
   constants.magnetClass = constants.htmlPrefix + '-magnet';
   constants.nodeClass = constants.htmlPrefix + '-node';
+  constants.nodeOverlayClass = constants.htmlPrefix + '-node-overlay';
   constants.leftConnectorClass = constants.htmlPrefix + '-' + constants.leftConnectorType + 's';
   constants.rightConnectorClass = constants.htmlPrefix + '-' + constants.rightConnectorType + 's';
   constants.canvasResizeThreshold = 200;
@@ -1755,12 +1757,6 @@ module.run(['$templateCache', function($templateCache) {
     '        ng-attr-class="{{(modelservice.edges.isSelected(edge) && flowchartConstants.selectedClass + \' \' + flowchartConstants.edgeClass) || edge == mouseOver.edge && flowchartConstants.hoverClass + \' \' + flowchartConstants.edgeClass || edge.active && flowchartConstants.activeClass + \' \' + flowchartConstants.edgeClass || flowchartConstants.edgeClass}}"\n' +
     '        ng-attr-d="{{getEdgeDAttribute(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge), edgeStyle)}}"\n' +
     '        marker-end="url(#{{arrowDefId}})"></path>\n' +
-    '      <!--text\n' +
-    '        text-anchor="middle"\n' +
-    '        ng-attr-x="{{getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).x}}"\n' +
-    '        ng-attr-y="{{getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).y-10}}">\n' +
-    '        {{edge.label}}\n' +
-    '      </text-->\n' +
     '    </g>\n' +
     '    <g ng-if="dragAnimation == flowchartConstants.dragAnimationRepaint && edgeDragging.isDragging">\n' +
     '\n' +
@@ -1782,8 +1778,15 @@ module.run(['$templateCache', function($templateCache) {
     '           callbacks="callbacks"\n' +
     '           user-node-callbacks="userNodeCallbacks"\n' +
     '           ng-repeat="node in model.nodes"></fc-node>\n' +
-    '  <div class="fc-edge-label" ng-if="edge.label"\n' +
-    '       ng-style="{ top: (getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).y-10)+\'px\',\n' +
+    '  <div ng-if="edge.label"\n' +
+    '       ng-mousedown="edgeMouseDown($event, edge)"\n' +
+    '       ng-click="edgeClick($event, edge)"\n' +
+    '       ng-dblclick="edgeDoubleClick($event, edge)"\n' +
+    '       ng-mouseover="edgeMouseOver($event, edge)"\n' +
+    '       ng-mouseenter="edgeMouseEnter($event, edge)"\n' +
+    '       ng-mouseleave="edgeMouseLeave($event, edge)"\n' +
+    '       ng-attr-class="{{(modelservice.edges.isSelected(edge) && flowchartConstants.selectedClass + \' \' + flowchartConstants.edgeLabelClass) || edge == mouseOver.edge && flowchartConstants.hoverClass + \' \' + flowchartConstants.edgeLabelClass || edge.active && flowchartConstants.activeClass + \' \' + flowchartConstants.edgeLabelClass || flowchartConstants.edgeLabelClass}}"\n' +
+    '       ng-style="{ top: (getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).y)+\'px\',\n' +
     '                   left: (getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).x)+\'px\'}"\n' +
     '       ng-repeat="edge in model.edges">\n' +
     '    <div class="fc-edge-label-text">\n' +
@@ -1808,6 +1811,7 @@ module.run(['$templateCache', function($templateCache) {
     '  id="{{node.id}}"\n' +
     '  ng-attr-style="position: absolute; top: {{ node.y }}px; left: {{ node.x }}px;"\n' +
     '  ng-dblclick="callbacks.doubleClick($event)">\n' +
+    '  <div class="{{flowchartConstants.nodeOverlayClass}}"></div>\n' +
     '  <div class="innerNode">\n' +
     '    <p>{{ node.name }}</p>\n' +
     '\n' +
