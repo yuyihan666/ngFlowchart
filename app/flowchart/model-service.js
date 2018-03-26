@@ -300,7 +300,9 @@
 
       modelservice.selectAll = function() {
         angular.forEach(model.nodes, function(value) {
-          modelservice.nodes.select(value);
+          if (!value.readonly) {
+            modelservice.nodes.select(value);
+          }
         });
         angular.forEach(model.edges, function(value) {
           modelservice.edges.select(value);

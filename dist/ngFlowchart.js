@@ -1014,7 +1014,9 @@ if (!Function.prototype.bind) {
 
       modelservice.selectAll = function() {
         angular.forEach(model.nodes, function(value) {
-          modelservice.nodes.select(value);
+          if (!value.readonly) {
+            modelservice.nodes.select(value);
+          }
         });
         angular.forEach(model.edges, function(value) {
           modelservice.edges.select(value);
@@ -1746,23 +1748,6 @@ try {
 module.run(['$templateCache', function($templateCache) {
   $templateCache.put('flowchart/canvas.html',
     '<div ng-click="canvasClick($event)">\n' +
-    '  <div ng-mousedown="edgeMouseDown($event, edge)"\n' +
-    '       ng-click="edgeClick($event, edge)"\n' +
-    '       ng-dblclick="edgeDoubleClick($event, edge)"\n' +
-    '       ng-mouseover="edgeMouseOver($event, edge)"\n' +
-    '       ng-mouseenter="edgeMouseEnter($event, edge)"\n' +
-    '       ng-mouseleave="edgeMouseLeave($event, edge)"\n' +
-    '       ng-attr-class="{{(modelservice.edges.isSelected(edge) && flowchartConstants.selectedClass + \' \' + flowchartConstants.edgeLabelClass) || edge == mouseOver.edge && flowchartConstants.hoverClass + \' \' + flowchartConstants.edgeLabelClass || edge.active && flowchartConstants.activeClass + \' \' + flowchartConstants.edgeLabelClass || flowchartConstants.edgeLabelClass}}"\n' +
-    '       ng-style="{ top: (getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).y)+\'px\',\n' +
-    '                   left: (getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).x)+\'px\'}"\n' +
-    '       ng-repeat="edge in model.edges">\n' +
-    '    <div class="fc-edge-label-text">\n' +
-    '      <div ng-if="modelservice.isEditable()" class="fc-nodedelete" ng-click="edgeRemove($event, edge)">\n' +
-    '        &times;\n' +
-    '      </div>\n' +
-    '      <span ng-if="edge.label">{{edge.label}}</span>\n' +
-    '    </div>\n' +
-    '  </div>\n' +
     '  <svg>\n' +
     '    <defs>\n' +
     '      <marker id="{{arrowDefId}}" markerWidth="5" markerHeight="5" viewBox="-6 -6 12 12" refX="10" refY="0" markerUnits="strokeWidth" orient="auto">\n' +
@@ -1801,6 +1786,23 @@ module.run(['$templateCache', function($templateCache) {
     '           callbacks="callbacks"\n' +
     '           user-node-callbacks="userNodeCallbacks"\n' +
     '           ng-repeat="node in model.nodes"></fc-node>\n' +
+    '  <div ng-mousedown="edgeMouseDown($event, edge)"\n' +
+    '       ng-click="edgeClick($event, edge)"\n' +
+    '       ng-dblclick="edgeDoubleClick($event, edge)"\n' +
+    '       ng-mouseover="edgeMouseOver($event, edge)"\n' +
+    '       ng-mouseenter="edgeMouseEnter($event, edge)"\n' +
+    '       ng-mouseleave="edgeMouseLeave($event, edge)"\n' +
+    '       ng-attr-class="{{(modelservice.edges.isSelected(edge) && flowchartConstants.selectedClass + \' \' + flowchartConstants.edgeLabelClass) || edge == mouseOver.edge && flowchartConstants.hoverClass + \' \' + flowchartConstants.edgeLabelClass || edge.active && flowchartConstants.activeClass + \' \' + flowchartConstants.edgeLabelClass || flowchartConstants.edgeLabelClass}}"\n' +
+    '       ng-style="{ top: (getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).y)+\'px\',\n' +
+    '                   left: (getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).x)+\'px\'}"\n' +
+    '       ng-repeat="edge in model.edges">\n' +
+    '    <div class="fc-edge-label-text">\n' +
+    '      <div ng-if="modelservice.isEditable()" class="fc-nodedelete" ng-click="edgeRemove($event, edge)">\n' +
+    '        &times;\n' +
+    '      </div>\n' +
+    '      <span ng-if="edge.label">{{edge.label}}</span>\n' +
+    '    </div>\n' +
+    '  </div>\n' +
     '  <div id="select-rectangle" class="fc-select-rectangle" hidden></div>\n' +
     '</div>\n' +
     '');
