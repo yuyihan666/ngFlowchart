@@ -226,6 +226,7 @@ body {
   transition: transform .2s;
   transform-origin: bottom left;
   margin: 0 auto;
+  z-index: 1;
 }
 
 .fc-edge-label .fc-nodedelete {
