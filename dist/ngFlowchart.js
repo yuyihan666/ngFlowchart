@@ -1688,6 +1688,12 @@ if (!Function.prototype.bind) {
       event.preventDefault();
     };
 
+    $scope.edgeRemove = function(event, edge) {
+      $scope.modelservice.edges.delete(edge);
+      event.stopPropagation();
+      event.preventDefault();
+    };
+
     $scope.edgeDoubleClick = $scope.userCallbacks.edgeDoubleClick || angular.noop;
     $scope.edgeMouseOver = $scope.userCallbacks.edgeMouseOver || angular.noop;
 
@@ -1789,7 +1795,7 @@ module.run(['$templateCache', function($templateCache) {
     '                   left: (getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).x)+\'px\'}"\n' +
     '       ng-repeat="edge in model.edges">\n' +
     '    <div class="fc-edge-label-text">\n' +
-    '      <div ng-if="modelservice.isEditable()" class="fc-nodedelete" ng-click="modelservice.edges.delete(edge)">\n' +
+    '      <div ng-if="modelservice.isEditable()" class="fc-nodedelete" ng-click="edgeRemove($event, edge)">\n' +
     '        &times;\n' +
     '      </div>\n' +
     '      <span ng-if="edge.label">{{edge.label}}</span>\n' +

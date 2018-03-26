@@ -48,7 +48,7 @@
                    left: (getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).x)+'px'}"
        ng-repeat="edge in model.edges">
     <div class="fc-edge-label-text">
-      <div ng-if="modelservice.isEditable()" class="fc-nodedelete" ng-click="modelservice.edges.delete(edge)">
+      <div ng-if="modelservice.isEditable()" class="fc-nodedelete" ng-click="edgeRemove($event, edge)">
         &times;
       </div>
       <span ng-if="edge.label">{{edge.label}}</span>

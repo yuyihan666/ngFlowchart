@@ -72,6 +72,12 @@
       event.preventDefault();
     };
 
+    $scope.edgeRemove = function(event, edge) {
+      $scope.modelservice.edges.delete(edge);
+      event.stopPropagation();
+      event.preventDefault();
+    };
+
     $scope.edgeDoubleClick = $scope.userCallbacks.edgeDoubleClick || angular.noop;
     $scope.edgeMouseOver = $scope.userCallbacks.edgeMouseOver || angular.noop;
 
