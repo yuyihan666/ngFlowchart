@@ -1778,8 +1778,7 @@ module.run(['$templateCache', function($templateCache) {
     '           callbacks="callbacks"\n' +
     '           user-node-callbacks="userNodeCallbacks"\n' +
     '           ng-repeat="node in model.nodes"></fc-node>\n' +
-    '  <div ng-if="edge.label"\n' +
-    '       ng-mousedown="edgeMouseDown($event, edge)"\n' +
+    '  <div ng-mousedown="edgeMouseDown($event, edge)"\n' +
     '       ng-click="edgeClick($event, edge)"\n' +
     '       ng-dblclick="edgeDoubleClick($event, edge)"\n' +
     '       ng-mouseover="edgeMouseOver($event, edge)"\n' +
@@ -1790,7 +1789,10 @@ module.run(['$templateCache', function($templateCache) {
     '                   left: (getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).x)+\'px\'}"\n' +
     '       ng-repeat="edge in model.edges">\n' +
     '    <div class="fc-edge-label-text">\n' +
-    '      <span>{{edge.label}}</span>\n' +
+    '      <div ng-if="modelservice.isEditable()" class="fc-nodedelete" ng-click="modelservice.edges.delete(edge)">\n' +
+    '        &times;\n' +
+    '      </div>\n' +
+    '      <span ng-if="edge.label">{{edge.label}}</span>\n' +
     '    </div>\n' +
     '  </div>\n' +
     '  <div id="select-rectangle" class="fc-select-rectangle" hidden></div>\n' +

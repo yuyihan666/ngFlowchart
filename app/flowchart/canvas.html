@@ -37,8 +37,7 @@
            callbacks="callbacks"
            user-node-callbacks="userNodeCallbacks"
            ng-repeat="node in model.nodes"></fc-node>
-  <div ng-if="edge.label"
-       ng-mousedown="edgeMouseDown($event, edge)"
+  <div ng-mousedown="edgeMouseDown($event, edge)"
        ng-click="edgeClick($event, edge)"
        ng-dblclick="edgeDoubleClick($event, edge)"
        ng-mouseover="edgeMouseOver($event, edge)"
@@ -49,7 +48,10 @@
                    left: (getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).x)+'px'}"
        ng-repeat="edge in model.edges">
     <div class="fc-edge-label-text">
-      <span>{{edge.label}}</span>
+      <div ng-if="modelservice.isEditable()" class="fc-nodedelete" ng-click="modelservice.edges.delete(edge)">
+        &times;
+      </div>
+      <span ng-if="edge.label">{{edge.label}}</span>
     </div>
   </div>
   <div id="select-rectangle" class="fc-select-rectangle" hidden></div>

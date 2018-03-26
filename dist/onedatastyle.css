@@ -215,6 +215,8 @@ body {
   color: #fff;
   text-align: center;
   vertical-align: bottom;
+
+  cursor: pointer;
 }
 
 .fc-edge-label {
@@ -224,6 +226,11 @@ body {
   transition: transform .2s;
   transform-origin: bottom left;
   margin: 0 auto;
+}
+
+.fc-edge-label .fc-nodedelete {
+  right: -13px;
+  top: -30px;
 }
 
 .fc-edge-label-text {
