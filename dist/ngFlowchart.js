@@ -1750,8 +1750,11 @@ module.run(['$templateCache', function($templateCache) {
     '<div ng-click="canvasClick($event)">\n' +
     '  <svg>\n' +
     '    <defs>\n' +
-    '      <marker id="{{arrowDefId}}" markerWidth="5" markerHeight="5" viewBox="-6 -6 12 12" refX="10" refY="0" markerUnits="strokeWidth" orient="auto">\n' +
-    '        <polygon points="-2,0 -5,5 5,0 -5,-5" fill="gray" stroke="black" stroke-width="1px"/>\n' +
+    '      <marker class="fc-arrow-marker" ng-attr-id="{{arrowDefId}}" markerWidth="5" markerHeight="5" viewBox="-6 -6 12 12" refX="10" refY="0" markerUnits="strokeWidth" orient="auto">\n' +
+    '        <polygon points="-2,0 -5,5 5,0 -5,-5" stroke="gray" fill="gray" stroke-width="1px"/>\n' +
+    '      </marker>\n' +
+    '      <marker class="fc-arrow-marker-selected" ng-attr-id="{{arrowDefId}}-selected" markerWidth="5" markerHeight="5" viewBox="-6 -6 12 12" refX="10" refY="0" markerUnits="strokeWidth" orient="auto">\n' +
+    '        <polygon points="-2,0 -5,5 5,0 -5,-5" stroke="red" fill="red" stroke-width="1px"/>\n' +
     '      </marker>\n' +
     '    </defs>\n' +
     '    <g ng-repeat="edge in model.edges">\n' +
@@ -1764,7 +1767,7 @@ module.run(['$templateCache', function($templateCache) {
     '        ng-mouseleave="edgeMouseLeave($event, edge)"\n' +
     '        ng-attr-class="{{(modelservice.edges.isSelected(edge) && flowchartConstants.selectedClass + \' \' + flowchartConstants.edgeClass) || edge == mouseOver.edge && flowchartConstants.hoverClass + \' \' + flowchartConstants.edgeClass || edge.active && flowchartConstants.activeClass + \' \' + flowchartConstants.edgeClass || flowchartConstants.edgeClass}}"\n' +
     '        ng-attr-d="{{getEdgeDAttribute(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge), edgeStyle)}}"\n' +
-    '        marker-end="url(#{{arrowDefId}})"></path>\n' +
+    '        ng-attr-marker-end="url(#{{modelservice.edges.isSelected(edge) ? arrowDefId+\'-selected\' : arrowDefId}})"></path>\n' +
     '    </g>\n' +
     '    <g ng-if="dragAnimation == flowchartConstants.dragAnimationRepaint && edgeDragging.isDragging">\n' +
     '\n' +
@@ -1792,12 +1795,12 @@ module.run(['$templateCache', function($templateCache) {
     '       ng-mouseover="edgeMouseOver($event, edge)"\n' +
     '       ng-mouseenter="edgeMouseEnter($event, edge)"\n' +
     '       ng-mouseleave="edgeMouseLeave($event, edge)"\n' +
-    '       ng-attr-class="{{(modelservice.edges.isSelected(edge) && flowchartConstants.selectedClass + \' \' + flowchartConstants.edgeLabelClass) || edge == mouseOver.edge && flowchartConstants.hoverClass + \' \' + flowchartConstants.edgeLabelClass || edge.active && flowchartConstants.activeClass + \' \' + flowchartConstants.edgeLabelClass || flowchartConstants.edgeLabelClass}}"\n' +
+    '       ng-attr-class="{{\'fc-noselect \' + ((modelservice.edges.isSelected(edge) && flowchartConstants.selectedClass + \' \' + flowchartConstants.edgeLabelClass) || edge == mouseOver.edge && flowchartConstants.hoverClass + \' \' + flowchartConstants.edgeLabelClass || edge.active && flowchartConstants.activeClass + flowchartConstants.edgeLabelClass || flowchartConstants.edgeLabelClass)}}"\n' +
     '       ng-style="{ top: (getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).y)+\'px\',\n' +
     '                   left: (getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).x)+\'px\'}"\n' +
     '       ng-repeat="edge in model.edges">\n' +
     '    <div class="fc-edge-label-text">\n' +
-    '      <div ng-if="modelservice.isEditable()" class="fc-nodedelete" ng-click="edgeRemove($event, edge)">\n' +
+    '      <div ng-if="modelservice.isEditable()" class="fc-noselect fc-nodedelete" ng-click="edgeRemove($event, edge)">\n' +
     '        &times;\n' +
     '      </div>\n' +
     '      <span ng-if="edge.label">{{edge.label}}</span>\n' +
