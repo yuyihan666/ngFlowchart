@@ -155,6 +155,7 @@ body {
   border-radius: 50% 50%;
   background-color: #F7A789;
   color: #fff;
+  pointer-events: all;
 }
 
 .fc-connector.fc-hover {
