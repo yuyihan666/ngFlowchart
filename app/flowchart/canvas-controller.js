@@ -68,8 +68,8 @@
     $scope.edgeClick = function(event, edge) {
       $scope.modelservice.edges.handleEdgeMouseClick(edge, event.ctrlKey);
       // Don't let the chart handle the mouse down.
-      event.stopPropagation();
-      event.preventDefault();
+      //event.stopPropagation();
+      //event.preventDefault();
     };
 
     $scope.edgeRemove = function(event, edge) {
@@ -101,8 +101,8 @@
           $scope.$apply();
 
           // Don't let the chart handle the mouse down.
-          event.stopPropagation();
-          event.preventDefault();
+          //event.stopPropagation();
+          //event.preventDefault();
         }
       }
     };
