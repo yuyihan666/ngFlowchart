@@ -21,7 +21,7 @@
       },
       controller: 'canvasController',
       link: function(scope, element) {
-        function adjustCanvasSize() {
+        function adjustCanvasSize(fit) {
           if (scope.model) {
             var maxX = 0;
             var maxY = 0;
@@ -29,8 +29,16 @@
               maxX = Math.max(node.x + scope.nodeWidth, maxX);
               maxY = Math.max(node.y + scope.nodeHeight, maxY);
             });
-            element.css('width', Math.max(maxX, element.prop('offsetWidth')) + 'px');
-            element.css('height', Math.max(maxY, element.prop('offsetHeight')) + 'px');
+            var width, height;
+            if (fit) {
+              width = maxX;
+              height = maxY;
+            } else {
+              width = Math.max(maxX, element.prop('offsetWidth'));
+              height = Math.max(maxY, element.prop('offsetHeight'));
+            }
+            element.css('width', width + 'px');
+            element.css('height', height + 'px');
           }
         }
         if (!scope.dropTargetId && scope.edgeStyle !== flowchartConstants.curvedStyle && scope.edgeStyle !== flowchartConstants.lineStyle) {
