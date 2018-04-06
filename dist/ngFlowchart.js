@@ -144,7 +144,7 @@ if (!Function.prototype.bind) {
       };
 
       rectangleSelectService.mousedown = function(e) {
-        if (modelservice.isEditable() && !e.ctrlKey) {
+        if (modelservice.isEditable() && !e.ctrlKey && !e.metaKey && e.button === 0) {
           rectangleSelectService.selectElement.hidden = 0;
           var offset = angular.element(modelservice.getCanvasHtmlElement()).offset();
           selectRect.x1 = Math.round(e.clientX - offset.left);
@@ -153,7 +153,7 @@ if (!Function.prototype.bind) {
         }
       };
       rectangleSelectService.mousemove = function(e) {
-        if (modelservice.isEditable() && !e.ctrlKey) {
+        if (modelservice.isEditable() && !e.ctrlKey && !e.metaKey && e.button === 0) {
           var offset = angular.element(modelservice.getCanvasHtmlElement()).offset();
           selectRect.x2 = Math.round(e.clientX - offset.left);
           selectRect.y2 = Math.round(e.clientY - offset.top);
@@ -161,7 +161,7 @@ if (!Function.prototype.bind) {
         }
       };
       rectangleSelectService.mouseup = function (e) {
-        if (modelservice.isEditable() && !e.ctrlKey) {
+        if (modelservice.isEditable() && !e.ctrlKey && !e.metaKey && e.button === 0) {
           var rectBox = rectangleSelectService.selectElement.getBoundingClientRect();
           rectBox.parentOffset = angular.element(modelservice.getCanvasHtmlElement()).offset();
           rectangleSelectService.selectElement.hidden = 1;
@@ -981,6 +981,43 @@ if (!Function.prototype.bind) {
             y >= rectBox.top && y <= rectBox.bottom;
       }
 
+      modelservice.getItemInfoAtPoint = function(x,y) {
+        return {
+            node: modelservice.getNodeAtPoint(x,y),
+            edge: modelservice.getEdgeAtPoint(x,y)
+        };
+      };
+
+      modelservice.getNodeAtPoint = function(x,y) {
+        for (var i=0;i<model.nodes.length;i++) {
+          var node = model.nodes[i];
+          var element = modelservice.nodes.getHtmlElement(node.id);
+          var nodeElementBox = element.getBoundingClientRect();
+          if (x >= nodeElementBox.left && x <= nodeElementBox.right
+                && y >= nodeElementBox.top && y <= nodeElementBox.bottom) {
+            return node;
+          }
+        }
+        return null;
+      };
+
+      modelservice.getEdgeAtPoint = function(x,y) {
+        var element = document.elementFromPoint(x, y);
+        var id = element.id;
+        var edgeIndex = -1;
+        if (id) {
+          if (id.startsWith("fc-edge-path-")) {
+            edgeIndex = Number(id.substring("fc-edge-path-".length));
+          } else if (id.startsWith("fc-edge-label-")) {
+            edgeIndex = Number(id.substring("fc-edge-label-".length));
+          }
+        }
+        if (edgeIndex > -1) {
+          return model.edges[edgeIndex];
+        }
+        return null;
+      };
+
       modelservice.selectAllInRect = function(rectBox) {
         angular.forEach(model.nodes, function(value) {
           var element = modelservice.nodes.getHtmlElement(value.id);
@@ -1604,6 +1641,7 @@ if (!Function.prototype.bind) {
 
         scope.internalControl = scope.control || {};
         scope.internalControl.adjustCanvasSize = adjustCanvasSize;
+        scope.internalControl.modelservice = scope.modelservice;
 
         scope.canvasservice.setCanvasHtmlElement(element[0]);
         scope.modelservice.setCanvasHtmlElement(element[0]);
@@ -1767,6 +1805,7 @@ module.run(['$templateCache', function($templateCache) {
     '    </defs>\n' +
     '    <g ng-repeat="edge in model.edges">\n' +
     '      <path\n' +
+    '        ng-attr-id="{{\'fc-edge-path-\'+$index}}"\n' +
     '        ng-mousedown="edgeMouseDown($event, edge)"\n' +
     '        ng-click="edgeClick($event, edge)"\n' +
     '        ng-dblclick="edgeDoubleClick($event, edge)"\n' +
@@ -1811,7 +1850,7 @@ module.run(['$templateCache', function($templateCache) {
     '      <div ng-if="modelservice.isEditable()" class="fc-noselect fc-nodedelete" ng-click="edgeRemove($event, edge)">\n' +
     '        &times;\n' +
     '      </div>\n' +
-    '      <span ng-if="edge.label">{{edge.label}}</span>\n' +
+    '      <span ng-attr-id="{{\'fc-edge-label-\'+$index}}" ng-if="edge.label">{{edge.label}}</span>\n' +
     '    </div>\n' +
     '  </div>\n' +
     '  <div id="select-rectangle" class="fc-select-rectangle" hidden></div>\n' +

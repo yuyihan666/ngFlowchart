@@ -36,7 +36,7 @@
       };
 
       rectangleSelectService.mousedown = function(e) {
-        if (modelservice.isEditable() && !e.ctrlKey) {
+        if (modelservice.isEditable() && !e.ctrlKey && !e.metaKey && e.button === 0) {
           rectangleSelectService.selectElement.hidden = 0;
           var offset = angular.element(modelservice.getCanvasHtmlElement()).offset();
           selectRect.x1 = Math.round(e.clientX - offset.left);
@@ -45,7 +45,7 @@
         }
       };
       rectangleSelectService.mousemove = function(e) {
-        if (modelservice.isEditable() && !e.ctrlKey) {
+        if (modelservice.isEditable() && !e.ctrlKey && !e.metaKey && e.button === 0) {
           var offset = angular.element(modelservice.getCanvasHtmlElement()).offset();
           selectRect.x2 = Math.round(e.clientX - offset.left);
           selectRect.y2 = Math.round(e.clientY - offset.top);
@@ -53,7 +53,7 @@
         }
       };
       rectangleSelectService.mouseup = function (e) {
-        if (modelservice.isEditable() && !e.ctrlKey) {
+        if (modelservice.isEditable() && !e.ctrlKey && !e.metaKey && e.button === 0) {
           var rectBox = rectangleSelectService.selectElement.getBoundingClientRect();
           rectBox.parentOffset = angular.element(modelservice.getCanvasHtmlElement()).offset();
           rectangleSelectService.selectElement.hidden = 1;

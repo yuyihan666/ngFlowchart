@@ -10,6 +10,7 @@
     </defs>
     <g ng-repeat="edge in model.edges">
       <path
+        ng-attr-id="{{'fc-edge-path-'+$index}}"
         ng-mousedown="edgeMouseDown($event, edge)"
         ng-click="edgeClick($event, edge)"
         ng-dblclick="edgeDoubleClick($event, edge)"
@@ -54,7 +55,7 @@
       <div ng-if="modelservice.isEditable()" class="fc-noselect fc-nodedelete" ng-click="edgeRemove($event, edge)">
         &times;
       </div>
-      <span ng-if="edge.label">{{edge.label}}</span>
+      <span ng-attr-id="{{'fc-edge-label-'+$index}}" ng-if="edge.label">{{edge.label}}</span>
     </div>
   </div>
   <div id="select-rectangle" class="fc-select-rectangle" hidden></div>

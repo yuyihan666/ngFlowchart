@@ -137,6 +137,9 @@ angular.module('app', ['flowchart'])
 
 $scope.flowchartselected = [];
 $scope.nodeTypesFlowchartselected = [];
+
+$scope.canvasControl = {};
+
 var modelservice = Modelfactory(model, $scope.flowchartselected);
 
 $scope.model = model;
@@ -234,6 +237,16 @@ $scope.addNewOutputConnector = function () {
 $scope.deleteSelected = function () {
   modelservice.deleteSelected();
 };
+
+/*angular.element('#main-container').bind('contextmenu', function($event) {
+  var x = $event.clientX;
+  var y = $event.clientY;
+  console.log(`${x}, ${y}`);
+  if ($scope.canvasControl.modelservice) {
+    var item = $scope.canvasControl.modelservice.getItemInfoAtPoint(x, y);
+    console.log(item);
+  }
+});*/
 
 $scope.callbacks = {
   edgeDoubleClick: function () {

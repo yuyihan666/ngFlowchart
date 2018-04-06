@@ -60,6 +60,7 @@
 
         scope.internalControl = scope.control || {};
         scope.internalControl.adjustCanvasSize = adjustCanvasSize;
+        scope.internalControl.modelservice = scope.modelservice;
 
         scope.canvasservice.setCanvasHtmlElement(element[0]);
         scope.modelservice.setCanvasHtmlElement(element[0]);

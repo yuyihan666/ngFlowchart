@@ -267,6 +267,43 @@
             y >= rectBox.top && y <= rectBox.bottom;
       }
 
+      modelservice.getItemInfoAtPoint = function(x,y) {
+        return {
+            node: modelservice.getNodeAtPoint(x,y),
+            edge: modelservice.getEdgeAtPoint(x,y)
+        };
+      };
+
+      modelservice.getNodeAtPoint = function(x,y) {
+        for (var i=0;i<model.nodes.length;i++) {
+          var node = model.nodes[i];
+          var element = modelservice.nodes.getHtmlElement(node.id);
+          var nodeElementBox = element.getBoundingClientRect();
+          if (x >= nodeElementBox.left && x <= nodeElementBox.right
+                && y >= nodeElementBox.top && y <= nodeElementBox.bottom) {
+            return node;
+          }
+        }
+        return null;
+      };
+
+      modelservice.getEdgeAtPoint = function(x,y) {
+        var element = document.elementFromPoint(x, y);
+        var id = element.id;
+        var edgeIndex = -1;
+        if (id) {
+          if (id.startsWith("fc-edge-path-")) {
+            edgeIndex = Number(id.substring("fc-edge-path-".length));
+          } else if (id.startsWith("fc-edge-label-")) {
+            edgeIndex = Number(id.substring("fc-edge-label-".length));
+          }
+        }
+        if (edgeIndex > -1) {
+          return model.edges[edgeIndex];
+        }
+        return null;
+      };
+
       modelservice.selectAllInRect = function(rectBox) {
         angular.forEach(model.nodes, function(value) {
           var element = modelservice.nodes.getHtmlElement(value.id);
