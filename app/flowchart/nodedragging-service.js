@@ -9,14 +9,16 @@
 
     return function(modelservice, nodeDraggingScope, applyFunction, automaticResize, dragAnimation) {
 
-      var dragOffset = {};
-      var draggedElement = null;
-      nodeDraggingScope.draggedNode = null;
       nodeDraggingScope.shadowDragStarted = false;
       nodeDraggingScope.dropElement = null;
 
-      var destinationHtmlElement = null;
-      var oldDisplayStyle = "";
+      var dragOffsets = [];
+      var draggedElements = [];
+      nodeDraggingScope.draggedNodes = [];
+      nodeDraggingScope.shadowElements = [];
+
+      var destinationHtmlElements = [];
+      var oldDisplayStyles = [];
 
       function getCoordinate(coordinate, max) {
         coordinate = Math.max(coordinate, 0);
@@ -46,21 +48,47 @@
             if (node.readonly) {
               return;
             }
-            var element = angular.element(event.target);
-            var offsetX = parseInt(element.css('left')) - event.clientX;
-            var offsetY = parseInt(element.css('top')) - event.clientY;
+
+            dragOffsets.length = 0;
+            draggedElements.length = 0;
+            nodeDraggingScope.draggedNodes.length = 0;
+            nodeDraggingScope.shadowElements.length = 0;
+            destinationHtmlElements.length = 0;
+            oldDisplayStyles.length = 0;
+
+            var elements = [];
+            var nodes = [];
+            if (modelservice.nodes.isSelected(node)) {
+              var selectedNodes = modelservice.nodes.getSelectedNodes();
+              for (var i=0;i<selectedNodes.length;i++) {
+                var selectedNode = selectedNodes[i];
+                var element = angular.element(modelservice.nodes.getHtmlElement(selectedNode.id));
+                elements.push(element);
+                nodes.push(selectedNode);
+              }
+            } else {
+              elements.push(angular.element(event.target));
+              nodes.push(node);
+            }
+            var offsetsX = [];
+            var offsetsY = [];
+            for (var i=0;i<elements.length;i++) {
+              var element = elements[i];
+              offsetsX.push(parseInt(element.css('left')) - event.clientX);
+              offsetsY.push(parseInt(element.css('top')) - event.clientY);
+            }
             if (modelservice.isDropSource()) {
               if (nodeDropScope.dropElement) {
                 nodeDropScope.dropElement.parentNode.removeChild(nodeDropScope.dropElement);
                 nodeDropScope.dropElement = null;
               }
-              nodeDropScope.dropElement = element[0].cloneNode(true);
+              nodeDropScope.dropElement = elements[0][0].cloneNode(true);
 
               var offset = angular.element(modelservice.getCanvasHtmlElement()).offset();
 
               nodeDropScope.dropElement.offsetInfo = {
-                offsetX: offsetX + offset.left,
-                offsetY: offsetY + offset.top
+                offsetX: offsetsX[0] + offset.left,
+                offsetY: offsetsY[0] + offset.top
               };
               nodeDropScope.dropElement.style.position = 'absolute';
               nodeDropScope.dropElement.style.pointerEvents = 'none';
@@ -69,8 +97,8 @@
               var dropNodeInfo = {
                 node: node,
                 dropTargetId: modelservice.getDropTargetId(),
-                offsetX: offsetX + offset.left,
-                offsetY: offsetY + offset.top
+                offsetX: offsetsX[0] + offset.left,
+                offsetY: offsetsY[0] + offset.top
               };
               event.originalEvent.dataTransfer.setData('text', angular.toJson(dropNodeInfo));
 
@@ -78,27 +106,36 @@
                 var invisibleDiv = angular.element('<div></div>')[0]; // This divs stays invisible, because it is not in the dom.
                 event.originalEvent.dataTransfer.setDragImage(invisibleDiv, 0, 0);
               } else {
-                destinationHtmlElement = event.target;
-                oldDisplayStyle = destinationHtmlElement.style.display;
+                destinationHtmlElements.push(event.target);
+                oldDisplayStyles.push(event.target.style.display);
                 event.target.style.display = 'none'
                 nodeDraggingScope.shadowDragStarted = true;
               }
               return;
             }
-            modelservice.deselectAll();
-            modelservice.nodes.select(node);
-            nodeDraggingScope.draggedNode = node;
-            draggedElement = event.target;
-
-            dragOffset.x = offsetX;
-            dragOffset.y = offsetY;
+            //modelservice.deselectAll();
+            //modelservice.nodes.select(node);
+            nodeDraggingScope.draggedNodes = nodes;
+            for (var i=0;i<elements.length;i++) {
+              draggedElements.push(elements[i][0]);
+              dragOffsets.push(
+                {
+                  x: offsetsX[i],
+                  y: offsetsY[i]
+                }
+              );
+            }
 
             if (dragAnimation == flowchartConstants.dragAnimationShadow) {
-              var shadowElement = angular.element('<div style="position: absolute; opacity: 0.7; top: '+ getYCoordinate(dragOffset.y + event.clientY) +'px; left: '+ getXCoordinate(dragOffset.x + event.clientX) +'px; "><div class="innerNode"><p style="padding: 0 15px;">'+ nodeDraggingScope.draggedNode.name +'</p> </div></div>');
-              var targetInnerNode = angular.element(event.target).children()[0];
-              shadowElement.children()[0].style.backgroundColor = targetInnerNode.style.backgroundColor;
-              nodeDraggingScope.shadowElement = shadowElement;
-              modelservice.getCanvasHtmlElement().appendChild(nodeDraggingScope.shadowElement[0]);
+              for (var i=0;i<draggedElements.length;i++) {
+                var dragOffset = dragOffsets[i];
+                var draggedNode = nodeDraggingScope.draggedNodes[i];
+                var shadowElement = angular.element('<div style="position: absolute; opacity: 0.7; top: '+ getYCoordinate(dragOffset.y + event.clientY) +'px; left: '+ getXCoordinate(dragOffset.x + event.clientX) +'px; "><div class="innerNode"><p style="padding: 0 15px;">'+ draggedNode.name +'</p> </div></div>');
+                var targetInnerNode = angular.element(draggedElements[i]).children()[0];
+                shadowElement.children()[0].style.backgroundColor = targetInnerNode.style.backgroundColor;
+                nodeDraggingScope.shadowElements.push(shadowElement);
+                modelservice.getCanvasHtmlElement().appendChild(nodeDraggingScope.shadowElements[i][0]);
+              }
             }
 
             event.originalEvent.dataTransfer.setData('text', 'Just to support firefox');
@@ -106,9 +143,11 @@
               var invisibleDiv = angular.element('<div></div>')[0]; // This divs stays invisible, because it is not in the dom.
               event.originalEvent.dataTransfer.setDragImage(invisibleDiv, 0, 0);
             } else {
-              destinationHtmlElement = event.target;
-              oldDisplayStyle = destinationHtmlElement.style.display;
-              event.target.style.display = 'none'; // Internetexplorer does not support setDragImage, but it takes an screenshot, from the draggedelement and uses it as dragimage.
+              for (var i=0;i<draggedElements.length;i++) {
+                destinationHtmlElements.push(draggedElements[i]);
+                oldDisplayStyles.push(destinationHtmlElements[i].style.display);
+                destinationHtmlElements[i].style.display = 'none'; // Internetexplorer does not support setDragImage, but it takes an screenshot, from the draggedelement and uses it as dragimage.
+              }
               // Since angular redraws the element in the next dragover call, display: none never gets visible to the user.
               if (dragAnimation == flowchartConstants.dragAnimationShadow) {
                 // IE Drag Fix
@@ -146,10 +185,14 @@
               modelservice.dropNode(event, dropNode);
               event.preventDefault();
               return false;
-          } else if (nodeDraggingScope.draggedNode) {
+          } else if (nodeDraggingScope.draggedNodes.length) {
             return applyFunction(function() {
-              nodeDraggingScope.draggedNode.x = getXCoordinate(dragOffset.x + event.clientX);
-              nodeDraggingScope.draggedNode.y = getYCoordinate(dragOffset.y + event.clientY);
+              for (var i=0;i<nodeDraggingScope.draggedNodes.length;i++) {
+                var draggedNode = nodeDraggingScope.draggedNodes[i];
+                var dragOffset = dragOffsets[i];
+                draggedNode.x = getXCoordinate(dragOffset.x + event.clientX);
+                draggedNode.y = getYCoordinate(dragOffset.y + event.clientY);
+              }
               event.preventDefault();
               return false;
             })
@@ -162,7 +205,7 @@
               nodeDropScope.dropElement.style.top = (offsetInfo.offsetY + event.clientY) + 'px';
               if(nodeDraggingScope.shadowDragStarted) {
                 applyFunction(function() {
-                  destinationHtmlElement.style.display = oldDisplayStyle;
+                  destinationHtmlElements[0].style.display = oldDisplayStyles[0];
                   nodeDraggingScope.shadowDragStarted = false;
                 });
               }
@@ -173,31 +216,41 @@
             event.preventDefault();
             return;
           }
-          if (!nodeDraggingScope.draggedNode) {
+          if (!nodeDraggingScope.draggedNodes.length) {
             event.preventDefault();
             return;
           }
           if (dragAnimation == flowchartConstants.dragAnimationRepaint) {
-            if (nodeDraggingScope.draggedNode) {
+            if (nodeDraggingScope.draggedNodes.length) {
               return applyFunction(function() {
-                nodeDraggingScope.draggedNode.x = getXCoordinate(dragOffset.x + event.clientX);
-                nodeDraggingScope.draggedNode.y = getYCoordinate(dragOffset.y + event.clientY);
-                resizeCanvas(nodeDraggingScope.draggedNode, draggedElement);
+                for (var i=0;i<nodeDraggingScope.draggedNodes.length;i++) {
+                  var draggedNode = nodeDraggingScope.draggedNodes[i];
+                  var dragOffset = dragOffsets[i];
+                  draggedNode.x = getXCoordinate(dragOffset.x + event.clientX);
+                  draggedNode.y = getYCoordinate(dragOffset.y + event.clientY);
+                  resizeCanvas(draggedNode, draggedElements[i]);
+                }
                 event.preventDefault();
                 return false;
               });
             }
           } else if (dragAnimation == flowchartConstants.dragAnimationShadow) {
-            if (nodeDraggingScope.draggedNode) {
+            if (nodeDraggingScope.draggedNodes.length) {
               if(nodeDraggingScope.shadowDragStarted) {
                 applyFunction(function() {
-                  destinationHtmlElement.style.display = oldDisplayStyle;
+                  for (var i=0;i<nodeDraggingScope.draggedNodes.length;i++) {
+                    destinationHtmlElements[i].style.display = oldDisplayStyles[i];
+                  }
                   nodeDraggingScope.shadowDragStarted = false;
                 });
               }
-              nodeDraggingScope.shadowElement.css('left', getXCoordinate(dragOffset.x + event.clientX) + 'px');
-              nodeDraggingScope.shadowElement.css('top', getYCoordinate(dragOffset.y + event.clientY) + 'px');
-              resizeCanvas(nodeDraggingScope.draggedNode, draggedElement);
+              for (var i=0;i<nodeDraggingScope.draggedNodes.length;i++) {
+                var draggedNode = nodeDraggingScope.draggedNodes[i];
+                var dragOffset = dragOffsets[i];
+                nodeDraggingScope.shadowElements[i].css('left', getXCoordinate(dragOffset.x + event.clientX) + 'px');
+                nodeDraggingScope.shadowElements[i].css('top', getYCoordinate(dragOffset.y + event.clientY) + 'px');
+                resizeCanvas(draggedNode, draggedElements[i]);
+              }
               event.preventDefault();
             }
           }
@@ -212,19 +265,21 @@
             if (modelservice.isDropSource()) {
               return;
             }
-            if (nodeDraggingScope.shadowElement) {
-              nodeDraggingScope.draggedNode.x = parseInt(nodeDraggingScope.shadowElement.css('left').replace('px',''));
-              nodeDraggingScope.draggedNode.y = parseInt(nodeDraggingScope.shadowElement.css('top').replace('px',''));
-
-              modelservice.getCanvasHtmlElement().removeChild(nodeDraggingScope.shadowElement[0]);
-              nodeDraggingScope.shadowElement = null;
+            if (nodeDraggingScope.shadowElements.length) {
+              for (var i=0;i<nodeDraggingScope.draggedNodes.length;i++) {
+                var draggedNode = nodeDraggingScope.draggedNodes[i];
+                var shadowElement = nodeDraggingScope.shadowElements[i];
+                draggedNode.x = parseInt(shadowElement.css('left').replace('px', ''));
+                draggedNode.y = parseInt(shadowElement.css('top').replace('px', ''));
+                modelservice.getCanvasHtmlElement().removeChild(shadowElement[0]);
+              }
+              nodeDraggingScope.shadowElements.length = 0;
             }
 
-            if (nodeDraggingScope.draggedNode) {
-              nodeDraggingScope.draggedNode = null;
-              draggedElement = null;
-              dragOffset.x = 0;
-              dragOffset.y = 0;
+            if (nodeDraggingScope.draggedNodes.length) {
+              nodeDraggingScope.draggedNodes.length = 0;
+              draggedElements.length = 0;
+              dragOffsets.length = 0;
             }
           });
         }
