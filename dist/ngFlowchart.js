@@ -112,7 +112,7 @@ if (!Function.prototype.bind) {
 
   function Rectangleselectfactory() {
 
-    return function(modelservice) {
+    return function(modelservice, applyFunction) {
 
       var rectangleSelectService = {
       };
@@ -136,7 +136,9 @@ if (!Function.prototype.bind) {
       }
 
       function selectObjects(rectBox) {
-        modelservice.selectAllInRect(rectBox);
+        applyFunction(function() {
+          modelservice.selectAllInRect(rectBox);
+        });
       }
 
       rectangleSelectService.setRectangleSelectHtmlElement = function(element) {
@@ -1748,7 +1750,7 @@ if (!Function.prototype.bind) {
     $scope.mouseOver = {};
     var mouseoverservice = Mouseoverfactory($scope.mouseOver, $scope.$apply.bind($scope));
 
-    $scope.rectangleselectservice = Rectangleselectfactory($scope.modelservice);
+    $scope.rectangleselectservice = Rectangleselectfactory($scope.modelservice, $scope.$apply.bind($scope));
 
     $scope.edgeMouseEnter = mouseoverservice.edgeMouseEnter;
     $scope.edgeMouseLeave = mouseoverservice.edgeMouseLeave;

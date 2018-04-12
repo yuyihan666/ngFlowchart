@@ -29,7 +29,7 @@
     $scope.mouseOver = {};
     var mouseoverservice = Mouseoverfactory($scope.mouseOver, $scope.$apply.bind($scope));
 
-    $scope.rectangleselectservice = Rectangleselectfactory($scope.modelservice);
+    $scope.rectangleselectservice = Rectangleselectfactory($scope.modelservice, $scope.$apply.bind($scope));
 
     $scope.edgeMouseEnter = mouseoverservice.edgeMouseEnter;
     $scope.edgeMouseLeave = mouseoverservice.edgeMouseLeave;

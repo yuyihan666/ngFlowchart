@@ -4,7 +4,7 @@
 
   function Rectangleselectfactory() {
 
-    return function(modelservice) {
+    return function(modelservice, applyFunction) {
 
       var rectangleSelectService = {
       };
@@ -28,7 +28,9 @@
       }
 
       function selectObjects(rectBox) {
-        modelservice.selectAllInRect(rectBox);
+        applyFunction(function() {
+          modelservice.selectAllInRect(rectBox);
+        });
       }
 
       rectangleSelectService.setRectangleSelectHtmlElement = function(element) {
