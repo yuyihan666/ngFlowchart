@@ -232,7 +232,6 @@ if (!Function.prototype.bind) {
             if (node.readonly) {
               return;
             }
-
             dragOffsets.length = 0;
             draggedElements.length = 0;
             nodeDraggingScope.draggedNodes.length = 0;
@@ -287,8 +286,9 @@ if (!Function.prototype.bind) {
               event.originalEvent.dataTransfer.setData('text', angular.toJson(dropNodeInfo));
 
               if (event.originalEvent.dataTransfer.setDragImage) {
-                var invisibleDiv = angular.element('<div></div>')[0]; // This divs stays invisible, because it is not in the dom.
-                event.originalEvent.dataTransfer.setDragImage(invisibleDiv, 0, 0);
+                //var invisibleDiv = angular.element('<div></div>')[0]; // This divs stays invisible, because it is not in the dom.
+                //event.originalEvent.dataTransfer.setDragImage(invisibleDiv, 0, 0);
+                event.originalEvent.dataTransfer.setDragImage(modelservice.getDragImage(), 0, 0);
               } else {
                 destinationHtmlElements.push(event.target);
                 oldDisplayStyles.push(event.target.style.display);
@@ -324,8 +324,9 @@ if (!Function.prototype.bind) {
 
             event.originalEvent.dataTransfer.setData('text', 'Just to support firefox');
             if (event.originalEvent.dataTransfer.setDragImage) {
-              var invisibleDiv = angular.element('<div></div>')[0]; // This divs stays invisible, because it is not in the dom.
-              event.originalEvent.dataTransfer.setDragImage(invisibleDiv, 0, 0);
+              //var invisibleDiv = angular.element('<div></div>')[0]; // This divs stays invisible, because it is not in the dom.
+              //event.originalEvent.dataTransfer.setDragImage(invisibleDiv, 0, 0);
+              event.originalEvent.dataTransfer.setDragImage(modelservice.getDragImage(), 0, 0);
             } else {
               for (var i=0;i<draggedElements.length;i++) {
                 destinationHtmlElements.push(draggedElements[i]);
@@ -784,6 +785,7 @@ if (!Function.prototype.bind) {
       modelservice.connectorsHtmlElements = {};
       modelservice.nodesHtmlElements = {};
       modelservice.canvasHtmlElement = null;
+      modelservice.dragImage = null;
       modelservice.svgHtmlElement = null;
 
       modelservice.dropNode = dropNode || angular.noop;
@@ -1156,6 +1158,15 @@ if (!Function.prototype.bind) {
         return modelservice.canvasHtmlElement;
       };
 
+      modelservice.getDragImage = function() {
+        if (!modelservice.dragImage) {
+          modelservice.dragImage = new Image();
+          modelservice.dragImage.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+          modelservice.dragImage.style.visibility = 'hidden';
+        }
+        return modelservice.dragImage;
+      };
+
       modelservice.setSvgHtmlElement = function(element) {
         modelservice.svgHtmlElement = element;
       };
@@ -1353,8 +1364,9 @@ if (!Function.prototype.bind) {
 
           event.originalEvent.dataTransfer.setData('Text', 'Just to support firefox');
           if (event.originalEvent.dataTransfer.setDragImage) {
-            var invisibleDiv = angular.element('<div></div>')[0]; // This divs stays invisible, because it is not in the dom.
-            event.originalEvent.dataTransfer.setDragImage(invisibleDiv, 0, 0);
+            //var invisibleDiv = angular.element('<div></div>')[0]; // This divs stays invisible, because it is not in the dom.
+            //event.originalEvent.dataTransfer.setDragImage(invisibleDiv, 0, 0);
+            event.originalEvent.dataTransfer.setDragImage(modelservice.getDragImage(), 0, 0);
           } else {
             destinationHtmlElement = event.target;
             oldDisplayStyle = destinationHtmlElement.style.display;

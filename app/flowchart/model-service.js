@@ -13,6 +13,7 @@
       modelservice.connectorsHtmlElements = {};
       modelservice.nodesHtmlElements = {};
       modelservice.canvasHtmlElement = null;
+      modelservice.dragImage = null;
       modelservice.svgHtmlElement = null;
 
       modelservice.dropNode = dropNode || angular.noop;
@@ -383,6 +384,15 @@
 
       modelservice.getCanvasHtmlElement = function() {
         return modelservice.canvasHtmlElement;
+      };
+
+      modelservice.getDragImage = function() {
+        if (!modelservice.dragImage) {
+          modelservice.dragImage = new Image();
+          modelservice.dragImage.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+          modelservice.dragImage.style.visibility = 'hidden';
+        }
+        return modelservice.dragImage;
       };
 
       modelservice.setSvgHtmlElement = function(element) {
