@@ -52,6 +52,11 @@
         return modelservice.selectedObjects.indexOf(object) !== -1;
       }
 
+      function isEditObject(object) {
+        return modelservice.selectedObjects.length === 1 &&
+          modelservice.selectedObjects.indexOf(object) !== -1;
+      }
+
       modelservice.connectors = {
 
         getConnector: function(connectorId) {
@@ -116,6 +121,7 @@
         deselect: deselectObject,
         toggleSelected: toggleSelectedObject,
         isSelected: isSelectedObject,
+        isEdit: isEditObject,
 
         _addConnector: function(node, connector) {
           node.connectors.push(connector);
@@ -218,6 +224,7 @@
         deselect: deselectObject,
         toggleSelected: toggleSelectedObject,
         isSelected: isSelectedObject,
+        isEdit: isEditObject,
 
         delete: function
           (edge) {

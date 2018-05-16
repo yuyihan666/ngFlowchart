@@ -14,6 +14,7 @@
         callbacks: '=userNodeCallbacks',
         node: '=',
         selected: '=',
+        edit: '=',
         underMouse: '=',
         mouseOverConnector: '=',
         modelservice: '=',
@@ -43,6 +44,9 @@
 
         scope.$watch('selected', function(value) {
           myToggleClass(flowchartConstants.selectedClass, value);
+        });
+        scope.$watch('edit', function(value) {
+          myToggleClass(flowchartConstants.editClass, value);
         });
         scope.$watch('underMouse', function(value) {
           myToggleClass(flowchartConstants.hoverClass, value);

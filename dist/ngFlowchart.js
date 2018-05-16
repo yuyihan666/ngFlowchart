@@ -520,6 +520,7 @@ if (!Function.prototype.bind) {
         callbacks: '=userNodeCallbacks',
         node: '=',
         selected: '=',
+        edit: '=',
         underMouse: '=',
         mouseOverConnector: '=',
         modelservice: '=',
@@ -549,6 +550,9 @@ if (!Function.prototype.bind) {
 
         scope.$watch('selected', function(value) {
           myToggleClass(flowchartConstants.selectedClass, value);
+        });
+        scope.$watch('edit', function(value) {
+          myToggleClass(flowchartConstants.editClass, value);
         });
         scope.$watch('underMouse', function(value) {
           myToggleClass(flowchartConstants.hoverClass, value);
@@ -824,6 +828,11 @@ if (!Function.prototype.bind) {
         return modelservice.selectedObjects.indexOf(object) !== -1;
       }
 
+      function isEditObject(object) {
+        return modelservice.selectedObjects.length === 1 &&
+          modelservice.selectedObjects.indexOf(object) !== -1;
+      }
+
       modelservice.connectors = {
 
         getConnector: function(connectorId) {
@@ -888,6 +897,7 @@ if (!Function.prototype.bind) {
         deselect: deselectObject,
         toggleSelected: toggleSelectedObject,
         isSelected: isSelectedObject,
+        isEdit: isEditObject,
 
         _addConnector: function(node, connector) {
           node.connectors.push(connector);
@@ -990,6 +1000,7 @@ if (!Function.prototype.bind) {
         deselect: deselectObject,
         toggleSelected: toggleSelectedObject,
         isSelected: isSelectedObject,
+        isEdit: isEditObject,
 
         delete: function
           (edge) {
@@ -1230,6 +1241,7 @@ if (!Function.prototype.bind) {
   };
   constants.canvasClass = constants.htmlPrefix + '-canvas';
   constants.selectedClass = constants.htmlPrefix + '-selected';
+  constants.editClass = constants.htmlPrefix + '-edit';
   constants.activeClass = constants.htmlPrefix + '-active';
   constants.hoverClass = constants.htmlPrefix + '-hover';
   constants.draggingClass = constants.htmlPrefix + '-dragging';
@@ -1813,6 +1825,7 @@ if (!Function.prototype.bind) {
 
     $scope.edgeDoubleClick = $scope.userCallbacks.edgeDoubleClick || angular.noop;
     $scope.edgeMouseOver = $scope.userCallbacks.edgeMouseOver || angular.noop;
+    $scope.edgeEdit = $scope.userCallbacks.edgeEdit || angular.noop;
 
     $scope.userNodeCallbacks = $scope.userCallbacks.nodeCallbacks;
     $scope.callbacks = {
@@ -1898,7 +1911,10 @@ module.run(['$templateCache', function($templateCache) {
     '      <circle class="edge-endpoint" r="4"></circle>\n' +
     '    </g>\n' +
     '  </svg>\n' +
-    '  <fc-node selected="modelservice.nodes.isSelected(node)" under-mouse="node === mouseOver.node" node="node"\n' +
+    '  <fc-node selected="modelservice.nodes.isSelected(node)"\n' +
+    '           edit="modelservice.nodes.isEdit(node)"\n' +
+    '           under-mouse="node === mouseOver.node"\n' +
+    '           node="node"\n' +
     '           mouse-over-connector="mouseOver.connector"\n' +
     '           modelservice="modelservice"\n' +
     '           dragged-node="nodeDragging.draggedNode"\n' +
@@ -1911,11 +1927,14 @@ module.run(['$templateCache', function($templateCache) {
     '       ng-mouseover="edgeMouseOver($event, edge)"\n' +
     '       ng-mouseenter="edgeMouseEnter($event, edge)"\n' +
     '       ng-mouseleave="edgeMouseLeave($event, edge)"\n' +
-    '       ng-attr-class="{{\'fc-noselect \' + ((modelservice.edges.isSelected(edge) && flowchartConstants.selectedClass + \' \' + flowchartConstants.edgeLabelClass) || edge == mouseOver.edge && flowchartConstants.hoverClass + \' \' + flowchartConstants.edgeLabelClass || edge.active && flowchartConstants.activeClass + flowchartConstants.edgeLabelClass || flowchartConstants.edgeLabelClass)}}"\n' +
+    '       ng-attr-class="{{\'fc-noselect \' + ((modelservice.edges.isEdit(edge) && flowchartConstants.editClass + \' \' + flowchartConstants.edgeLabelClass) || (modelservice.edges.isSelected(edge) && flowchartConstants.selectedClass + \' \' + flowchartConstants.edgeLabelClass) || edge == mouseOver.edge && flowchartConstants.hoverClass + \' \' + flowchartConstants.edgeLabelClass || edge.active && flowchartConstants.activeClass + flowchartConstants.edgeLabelClass || flowchartConstants.edgeLabelClass)}}"\n' +
     '       ng-style="{ top: (getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).y)+\'px\',\n' +
     '                   left: (getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).x)+\'px\'}"\n' +
     '       ng-repeat="edge in model.edges">\n' +
     '    <div class="fc-edge-label-text">\n' +
+    '      <div ng-if="modelservice.isEditable()" class="fc-noselect fc-nodeedit" ng-click="edgeEdit($event, edge)">\n' +
+    '        <i class="fa fa-pencil" aria-hidden="true"></i>\n' +
+    '      </div>\n' +
     '      <div ng-if="modelservice.isEditable()" class="fc-noselect fc-nodedelete" ng-click="edgeRemove($event, edge)">\n' +
     '        &times;\n' +
     '      </div>\n' +
@@ -1956,6 +1975,9 @@ module.run(['$templateCache', function($templateCache) {
     '        <div fc-connector></div>\n' +
     '      </div>\n' +
     '    </div>\n' +
+    '  </div>\n' +
+    '  <div ng-if="modelservice.isEditable() && !node.readonly" class="fc-nodeedit" ng-click="callbacks.nodeEdit($event, node)">\n' +
+    '    <i class="fa fa-pencil" aria-hidden="true"></i>\n' +
     '  </div>\n' +
     '  <div ng-if="modelservice.isEditable() && !node.readonly" class="fc-nodedelete" ng-click="modelservice.nodes.delete(node)">\n' +
     '    &times;\n' +

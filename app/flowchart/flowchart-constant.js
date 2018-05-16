@@ -13,6 +13,7 @@
   };
   constants.canvasClass = constants.htmlPrefix + '-canvas';
   constants.selectedClass = constants.htmlPrefix + '-selected';
+  constants.editClass = constants.htmlPrefix + '-edit';
   constants.activeClass = constants.htmlPrefix + '-active';
   constants.hoverClass = constants.htmlPrefix + '-hover';
   constants.draggingClass = constants.htmlPrefix + '-dragging';

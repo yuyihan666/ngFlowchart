@@ -34,7 +34,10 @@
       <circle class="edge-endpoint" r="4"></circle>
     </g>
   </svg>
-  <fc-node selected="modelservice.nodes.isSelected(node)" under-mouse="node === mouseOver.node" node="node"
+  <fc-node selected="modelservice.nodes.isSelected(node)"
+           edit="modelservice.nodes.isEdit(node)"
+           under-mouse="node === mouseOver.node"
+           node="node"
            mouse-over-connector="mouseOver.connector"
            modelservice="modelservice"
            dragged-node="nodeDragging.draggedNode"
@@ -47,11 +50,14 @@
        ng-mouseover="edgeMouseOver($event, edge)"
        ng-mouseenter="edgeMouseEnter($event, edge)"
        ng-mouseleave="edgeMouseLeave($event, edge)"
-       ng-attr-class="{{'fc-noselect ' + ((modelservice.edges.isSelected(edge) && flowchartConstants.selectedClass + ' ' + flowchartConstants.edgeLabelClass) || edge == mouseOver.edge && flowchartConstants.hoverClass + ' ' + flowchartConstants.edgeLabelClass || edge.active && flowchartConstants.activeClass + flowchartConstants.edgeLabelClass || flowchartConstants.edgeLabelClass)}}"
+       ng-attr-class="{{'fc-noselect ' + ((modelservice.edges.isEdit(edge) && flowchartConstants.editClass + ' ' + flowchartConstants.edgeLabelClass) || (modelservice.edges.isSelected(edge) && flowchartConstants.selectedClass + ' ' + flowchartConstants.edgeLabelClass) || edge == mouseOver.edge && flowchartConstants.hoverClass + ' ' + flowchartConstants.edgeLabelClass || edge.active && flowchartConstants.activeClass + flowchartConstants.edgeLabelClass || flowchartConstants.edgeLabelClass)}}"
        ng-style="{ top: (getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).y)+'px',
                    left: (getEdgeCenter(modelservice.edges.sourceCoord(edge), modelservice.edges.destCoord(edge)).x)+'px'}"
        ng-repeat="edge in model.edges">
     <div class="fc-edge-label-text">
+      <div ng-if="modelservice.isEditable()" class="fc-noselect fc-nodeedit" ng-click="edgeEdit($event, edge)">
+        <i class="fa fa-pencil" aria-hidden="true"></i>
+      </div>
       <div ng-if="modelservice.isEditable()" class="fc-noselect fc-nodedelete" ng-click="edgeRemove($event, edge)">
         &times;
       </div>

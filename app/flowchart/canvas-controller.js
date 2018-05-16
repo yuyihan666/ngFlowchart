@@ -80,6 +80,7 @@
 
     $scope.edgeDoubleClick = $scope.userCallbacks.edgeDoubleClick || angular.noop;
     $scope.edgeMouseOver = $scope.userCallbacks.edgeMouseOver || angular.noop;
+    $scope.edgeEdit = $scope.userCallbacks.edgeEdit || angular.noop;
 
     $scope.userNodeCallbacks = $scope.userCallbacks.nodeCallbacks;
     $scope.callbacks = {

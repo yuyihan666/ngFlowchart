@@ -215,22 +215,26 @@ body {
 
 .fc-nodedelete {
   display: none;
+  font-size: 18px;
 }
 
-.fc-selected .fc-nodedelete {
+.fc-nodeedit {
+  display: none;
+  font-size: 15px;
+}
+
+.fc-edit .fc-nodedelete, .fc-edit .fc-nodeedit {
   display: block;
   position: absolute;
-  right: -13px;
-  top: -13px;
-  border: solid 2px white;
+  border: solid 2px #eee;
 
   border-radius: 50%;
   font-weight: 600;
-  font-size: 20px;
+  line-height: 20px;
 
-  height: 25px;
+  height: 20px;
   padding-top: 2px;
-  width: 27px;
+  width: 22px;
 
   background: #494949;
   color: #fff;
@@ -238,6 +242,16 @@ body {
   vertical-align: bottom;
 
   cursor: pointer;
+}
+
+.fc-edit .fc-nodeedit {
+  top: -24px;
+  right: 16px;
+}
+
+.fc-edit .fc-nodedelete {
+  top: -24px;
+  right: -13px;
 }
 
 .fc-noselect {
@@ -258,10 +272,16 @@ body {
   margin: 0 auto;
 }
 
-.fc-edge-label .fc-nodedelete {
-  right: -13px;
+.fc-edge-label .fc-nodeedit {
   top: -30px;
+  right: 14px;
 }
+
+.fc-edge-label .fc-nodedelete {
+  top: -30px;
+  right: -13px;
+}
+
 
 .fc-edge-label-text {
   position: absolute;
@@ -285,9 +305,11 @@ body {
   transform: scale(1.25);
 }
 
-.fc-edge-label.fc-selected .fc-edge-label-text span {
+.fc-edge-label.fc-selected .fc-edge-label-text span, .fc-edge-label.fc-edit .fc-edge-label-text span {
   border: solid red;
-  color: red;
+  color: #fff;
+  font-weight: 600;
+  background-color: red;
 }
 
 .fc-select-rectangle {

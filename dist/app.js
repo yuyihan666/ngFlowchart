@@ -252,6 +252,12 @@ $scope.callbacks = {
   edgeDoubleClick: function () {
     console.log('Edge double clicked.');
   },
+  edgeEdit: function(event, edge) {
+    var label = prompt("Enter a link label:", edge.label);
+    if (label) {
+      edge.label = label;
+    }
+  },
   edgeMouseOver: function () {
     console.log('mouserover')
   },
@@ -301,6 +307,12 @@ $scope.callbacks = {
     },
     'click': function (event) {
       console.log('Node was clicked.')
+    },
+    'nodeEdit': function (event, node) {
+      var name = prompt("Enter a node name:", node.name);
+      if (name) {
+        node.name = name;
+      }
     }
   }
 };
