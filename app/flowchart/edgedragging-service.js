@@ -30,6 +30,8 @@
             for (var i = 0; i < model.edges.length; i++) {
               if (model.edges[i].destination == connector.id) {
                 var swapConnector = modelservice.connectors.getConnector(model.edges[i].source);
+                var dragLabel = model.edges[i].label;
+                var prevEdge = model.edges[i];
                 applyFunction(function() {
                   modelservice.edges.delete(model.edges[i]);
                 });
@@ -43,6 +45,8 @@
           if (swapConnector != undefined) {
             draggedEdgeSource = swapConnector;
             edgeDragging.dragPoint1 = modelservice.connectors.getCenteredCoord(swapConnector.id);
+            edgeDragging.dragLabel = dragLabel;
+            edgeDragging.prevEdge = prevEdge;
           } else {
             draggedEdgeSource = connector;
             edgeDragging.dragPoint1 = modelservice.connectors.getCenteredCoord(connector.id);
@@ -213,10 +217,18 @@
           edgeDragging.isDragging = false;
           edgeDragging.dragPoint1 = null;
           edgeDragging.dragPoint2 = null;
+          edgeDragging.dragLabel = null;
           event.stopPropagation();
 
           if (dragAnimation == flowchartConstants.dragAnimationShadow) {
             edgeDragging.gElement.css('display', 'none');
+          }
+          if (edgeDragging.prevEdge) {
+            var edge = edgeDragging.prevEdge;
+            edgeDragging.prevEdge = null;
+            applyFunction(function() {
+              modelservice.edges.putEdge(edge);
+            });
           }
         }
       };
@@ -238,7 +250,8 @@
             }
 
             if (isValidEdgeCallback(draggedEdgeSource, targetConnector)) {
-              modelservice.edges._addEdge(event, draggedEdgeSource, targetConnector);
+              edgeDragging.prevEdge = null;
+              modelservice.edges._addEdge(event, draggedEdgeSource, targetConnector, edgeDragging.dragLabel);
               event.stopPropagation();
               event.preventDefault();
               return false;

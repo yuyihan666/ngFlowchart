@@ -266,8 +266,10 @@ $scope.callbacks = {
   },
   createEdge: function (event, edge) {
     var deferred = $q.defer();
-    var label = prompt("Enter a link label:", "New label");
-    edge.label = label;
+    if (!edge.label) {
+      var label = prompt("Enter a link label:", "New label");
+      edge.label = label;
+    }
     deferred.resolve(edge);
     return deferred.promise;
   },

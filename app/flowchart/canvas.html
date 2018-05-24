@@ -44,6 +44,14 @@
            callbacks="callbacks"
            user-node-callbacks="userNodeCallbacks"
            ng-repeat="node in model.nodes"></fc-node>
+  <div ng-if="dragAnimation == flowchartConstants.dragAnimationRepaint && edgeDragging.isDragging"
+    ng-attr-class="{{'fc-noselect ' + flowchartConstants.edgeLabelClass}}"
+    ng-style="{ top: (getEdgeCenter(edgeDragging.dragPoint1, edgeDragging.dragPoint2).y)+'px',
+                left: (getEdgeCenter(edgeDragging.dragPoint1, edgeDragging.dragPoint2).x)+'px'}">
+    <div class="fc-edge-label-text">
+      <span ng-attr-id="{{'fc-edge-label-dragging'}}" ng-if="edgeDragging.dragLabel">{{edgeDragging.dragLabel}}</span>
+    </div>
+  </div>
   <div ng-mousedown="edgeMouseDown($event, edge)"
        ng-click="edgeClick($event, edge)"
        ng-dblclick="edgeDoubleClick($event, edge)"

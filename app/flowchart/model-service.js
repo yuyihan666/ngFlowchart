@@ -254,12 +254,17 @@
           }
         },
 
-        _addEdge: function(event, sourceConnector, destConnector) {
+        putEdge: function(edge) {
+          model.edges.push(edge);
+        },
+
+        _addEdge: function(event, sourceConnector, destConnector, label) {
           Modelvalidation.validateConnector(sourceConnector);
           Modelvalidation.validateConnector(destConnector);
           var edge = {};
           edge.source = sourceConnector.id;
           edge.destination = destConnector.id;
+          edge.label = label;
           Modelvalidation.validateEdges(model.edges.concat([edge]), model.nodes);
           modelservice.createEdge(event, edge).then(
             function (edge) {

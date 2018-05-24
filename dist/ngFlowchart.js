@@ -1030,12 +1030,17 @@ if (!Function.prototype.bind) {
           }
         },
 
-        _addEdge: function(event, sourceConnector, destConnector) {
+        putEdge: function(edge) {
+          model.edges.push(edge);
+        },
+
+        _addEdge: function(event, sourceConnector, destConnector, label) {
           Modelvalidation.validateConnector(sourceConnector);
           Modelvalidation.validateConnector(destConnector);
           var edge = {};
           edge.source = sourceConnector.id;
           edge.destination = destConnector.id;
+          edge.label = label;
           Modelvalidation.validateEdges(model.edges.concat([edge]), model.nodes);
           modelservice.createEdge(event, edge).then(
             function (edge) {
@@ -1344,6 +1349,8 @@ if (!Function.prototype.bind) {
             for (var i = 0; i < model.edges.length; i++) {
               if (model.edges[i].destination == connector.id) {
                 var swapConnector = modelservice.connectors.getConnector(model.edges[i].source);
+                var dragLabel = model.edges[i].label;
+                var prevEdge = model.edges[i];
                 applyFunction(function() {
                   modelservice.edges.delete(model.edges[i]);
                 });
@@ -1357,6 +1364,8 @@ if (!Function.prototype.bind) {
           if (swapConnector != undefined) {
             draggedEdgeSource = swapConnector;
             edgeDragging.dragPoint1 = modelservice.connectors.getCenteredCoord(swapConnector.id);
+            edgeDragging.dragLabel = dragLabel;
+            edgeDragging.prevEdge = prevEdge;
           } else {
             draggedEdgeSource = connector;
             edgeDragging.dragPoint1 = modelservice.connectors.getCenteredCoord(connector.id);
@@ -1527,10 +1536,18 @@ if (!Function.prototype.bind) {
           edgeDragging.isDragging = false;
           edgeDragging.dragPoint1 = null;
           edgeDragging.dragPoint2 = null;
+          edgeDragging.dragLabel = null;
           event.stopPropagation();
 
           if (dragAnimation == flowchartConstants.dragAnimationShadow) {
             edgeDragging.gElement.css('display', 'none');
+          }
+          if (edgeDragging.prevEdge) {
+            var edge = edgeDragging.prevEdge;
+            edgeDragging.prevEdge = null;
+            applyFunction(function() {
+              modelservice.edges.putEdge(edge);
+            });
           }
         }
       };
@@ -1552,7 +1569,8 @@ if (!Function.prototype.bind) {
             }
 
             if (isValidEdgeCallback(draggedEdgeSource, targetConnector)) {
-              modelservice.edges._addEdge(event, draggedEdgeSource, targetConnector);
+              edgeDragging.prevEdge = null;
+              modelservice.edges._addEdge(event, draggedEdgeSource, targetConnector, edgeDragging.dragLabel);
               event.stopPropagation();
               event.preventDefault();
               return false;
@@ -1921,6 +1939,14 @@ module.run(['$templateCache', function($templateCache) {
     '           callbacks="callbacks"\n' +
     '           user-node-callbacks="userNodeCallbacks"\n' +
     '           ng-repeat="node in model.nodes"></fc-node>\n' +
+    '  <div ng-if="dragAnimation == flowchartConstants.dragAnimationRepaint && edgeDragging.isDragging"\n' +
+    '    ng-attr-class="{{\'fc-noselect \' + flowchartConstants.edgeLabelClass}}"\n' +
+    '    ng-style="{ top: (getEdgeCenter(edgeDragging.dragPoint1, edgeDragging.dragPoint2).y)+\'px\',\n' +
+    '                left: (getEdgeCenter(edgeDragging.dragPoint1, edgeDragging.dragPoint2).x)+\'px\'}">\n' +
+    '    <div class="fc-edge-label-text">\n' +
+    '      <span ng-attr-id="{{\'fc-edge-label-dragging\'}}" ng-if="edgeDragging.dragLabel">{{edgeDragging.dragLabel}}</span>\n' +
+    '    </div>\n' +
+    '  </div>\n' +
     '  <div ng-mousedown="edgeMouseDown($event, edge)"\n' +
     '       ng-click="edgeClick($event, edge)"\n' +
     '       ng-dblclick="edgeDoubleClick($event, edge)"\n' +
