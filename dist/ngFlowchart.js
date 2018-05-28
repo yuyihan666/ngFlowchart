@@ -282,8 +282,8 @@ if (!Function.prototype.bind) {
               var dropNodeInfo = {
                 node: node,
                 dropTargetId: modelservice.getDropTargetId(),
-                offsetX: offsetsX[0] + offset.left,
-                offsetY: offsetsY[0] + offset.top
+                offsetX: Math.round(offsetsX[0] + offset.left),
+                offsetY: Math.round(offsetsY[0] + offset.top)
               };
               event.originalEvent.dataTransfer.setData('text', angular.toJson(dropNodeInfo));
 
