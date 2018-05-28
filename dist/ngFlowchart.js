@@ -270,8 +270,8 @@ if (!Function.prototype.bind) {
               var offset = angular.element(modelservice.getCanvasHtmlElement()).offset();
 
               nodeDropScope.dropElement.offsetInfo = {
-                offsetX: offsetsX[0] + offset.left,
-                offsetY: offsetsY[0] + offset.top
+                offsetX: Math.round(offsetsX[0] + offset.left),
+                offsetY: Math.round(offsetsY[0] + offset.top)
               };
               nodeDropScope.dropElement.style.position = 'absolute';
               nodeDropScope.dropElement.style.pointerEvents = 'none';
