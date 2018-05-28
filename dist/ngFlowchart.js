@@ -275,6 +275,8 @@ if (!Function.prototype.bind) {
               };
               nodeDropScope.dropElement.style.position = 'absolute';
               nodeDropScope.dropElement.style.pointerEvents = 'none';
+              nodeDropScope.dropElement.style.zIndex = '9999';
+
               document.body.appendChild(nodeDropScope.dropElement);
 
               var dropNodeInfo = {
@@ -292,7 +294,7 @@ if (!Function.prototype.bind) {
               } else {
                 destinationHtmlElements.push(event.target);
                 oldDisplayStyles.push(event.target.style.display);
-                event.target.style.display = 'none'
+                event.target.style.display = 'none';
                 nodeDraggingScope.shadowDragStarted = true;
               }
               return;
