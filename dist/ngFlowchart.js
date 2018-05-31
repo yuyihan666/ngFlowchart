@@ -361,10 +361,10 @@ if (!Function.prototype.bind) {
                 modelservice.getCanvasHtmlElement().id == dropNodeInfo.dropTargetId) {
                 dropNode = dropNodeInfo.node;
                 var offset = angular.element(modelservice.getCanvasHtmlElement()).offset();
-                var x = Math.round(event.clientX - offset.left);
-                var y = Math.round(event.clientY - offset.top);
-                dropNode.x = getXCoordinate(dropNodeInfo.offsetX + x);
-                dropNode.y = getYCoordinate(dropNodeInfo.offsetY + y);
+                var x = event.clientX - offset.left;
+                var y = event.clientY - offset.top;
+                dropNode.x = Math.round(getXCoordinate(dropNodeInfo.offsetX + x));
+                dropNode.y = Math.round(getYCoordinate(dropNodeInfo.offsetY + y));
               }
              }
           }
@@ -377,8 +377,8 @@ if (!Function.prototype.bind) {
               for (var i=0;i<nodeDraggingScope.draggedNodes.length;i++) {
                 var draggedNode = nodeDraggingScope.draggedNodes[i];
                 var dragOffset = dragOffsets[i];
-                draggedNode.x = getXCoordinate(dragOffset.x + event.clientX);
-                draggedNode.y = getYCoordinate(dragOffset.y + event.clientY);
+                draggedNode.x = Math.round(getXCoordinate(dragOffset.x + event.clientX));
+                draggedNode.y = Math.round(getYCoordinate(dragOffset.y + event.clientY));
               }
               event.preventDefault();
               return false;
