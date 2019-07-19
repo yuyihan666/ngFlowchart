@@ -39,8 +39,17 @@
     //};
 
     $scope.drop = function(event) {
+      if(event.preventDefault) {
+        event.preventDefault();
+      }
+      if(event.stopPropagation) {
+        event.stopPropagation();
+      }
+
       nodedraggingservice.drop(event);
       $scope.canvasservice._notifyDrop(event);
+
+      $scope.$evalAsync();
     };
 
     $scope.dragover = function(event) {
