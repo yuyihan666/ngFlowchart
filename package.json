@@ -1,6 +1,6 @@
 {
   "name": "ngFlowchart",
-  "version": "0.5.1TB",
+  "version": "master",
   "description": "Customizable drag & drop flowchart directive for AngularJS",
   "repository": "https://github.com/ikulikov/ngFlowchart",
   "license": "MIT",
